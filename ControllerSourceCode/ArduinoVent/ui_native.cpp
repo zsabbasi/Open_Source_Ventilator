@@ -19,7 +19,7 @@
  **************************************************************
 */
 
-
+#include "pressureD.h"//for differential pressure
 #include "ui_native.h"
 #include "hal.h"
 #include "properties.h"
@@ -199,6 +199,27 @@ static int handleGetLcdAutoOff() {
      return propGetLcdAutoOff();
 }
 
+static char *  getFlowRateF()
+{
+ static char buf[8];
+ buf[sizeof(buf) - 1] = 0;
+ float p=getPsi(A7);
+
+ float f = getFlowRate();
+#ifndef VENTSIM
+    dtostrf(getFlowRate(), 2, 2, buf);
+#else
+    snprintf(buf, sizeof(buf) - 1, "%f", f);
+#endif
+// char neg[2]="- ";
+
+ if(p<0)return strcat("-",buf);
+if(p==0)return "0";
+else return buf;
+    // return "1001";
+}
+
+
 static char *  getPressure()
 {
  static char buf[8];
@@ -209,7 +230,8 @@ static char *  getPressure()
 #else
     snprintf(buf, sizeof(buf) - 1, "%f", f);
 #endif
-    return buf;
+    // return buf;
+    return "1001";
 }
 
 static const char * onOffTxt[] = {
@@ -223,7 +245,17 @@ static const char * yesNoTxt[] = {
 };
 
 static /* const */ params_t params[] /* PROGMEM */ =  {
-    { PARAM_TXT_OPTIONS,        // type
+     {  PARAM_TEXT_GET_VAL,       // type
+      "Flow Rate",             // name
+      0,                        // val
+      1,                        // step
+      0,                        // min
+      1,                        // max
+      0,                        // text array for options
+      false,                    // no dynamic changes
+      0,  // change prop function
+{getFlowRateF}
+    },  { PARAM_TXT_OPTIONS,        // type
       STR_VENTILATOR,           // name
       0,                        // val
       1,                        // step
