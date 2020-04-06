@@ -26,7 +26,7 @@
 #include "log.h"
 #include "pressure.h"
 #include "event.h"
-
+#include "pressureD.h" //for mxp5700 differential pressure
 #define MINUTE_MILLI 60000
 #define TM_WAIT_TO_OUT 50 // 50 milliseconds
 #define TM_STOPPING 4000 // 4 seconds to stop
@@ -43,7 +43,9 @@ static uint64_t tm_start;
 static const int rate[4] = {1,2,3,4} ;
 
 static B_STATE_t b_state = B_ST_STOPPED;
-
+static int count5700;
+static float avg5700;
+static float accum5700;
 int breatherGetPropress()
 {
     return curr_progress;
@@ -167,6 +169,12 @@ static void fsmPause()
 
 void breatherLoop()
 {
+//get average flowrate
+    accum5700+=getFlowRate();
+    count5700+=1;
+    if(count5700%10==0)avg5700=accum5700/10;//will update on 10 readings
+
+
     if (b_state != B_ST_STOPPED && b_state != B_ST_STOPPING && propGetVent() == 0) {
         // force stop
         tm_start = halStartTimerRef();
