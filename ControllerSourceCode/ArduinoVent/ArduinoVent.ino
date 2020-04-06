@@ -1,5 +1,13 @@
 #include "vent.h"
 #include "hal.h"
+#include <SoftwareSerial.h>
+
+SoftwareSerial *monitor;
+
+bool sendToMonitor(char* data, int dataLen){
+
+  if(monitor->available()){for(int i=0;i<dataLen;i++)monitor->write(data[i]);}
+}
 
 //#define GET_RESET_VAL // disable as this code is not working
 #ifdef GET_RESET_VAL
@@ -18,13 +26,17 @@ uint8_t resetFlags = 0;
 //getPsi(A5); //PIN 8
 //float *vals=new float;
 void setup() {
+  monitor=new SoftwareSerial(19,18);//Serial data to Monitor
+  monitor->begin(19200);
   resetFlagsInit();
   halInit(resetFlags);
   ventSetup();
 }
 
 void loop() {
+  
   ventLoop();  
+  // sendToMonitor(packets,length) -->expected type string data along its length
   //Serial.print("KPA :  ");
   //Serial.println(getPsi(A9));
 }
