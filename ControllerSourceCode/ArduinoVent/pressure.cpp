@@ -47,17 +47,17 @@ function geta(v)
   return r
 end
 */
-
+#include <Adafruit_BMP280.h> //for bmp280
 #include "pressure.h"
 #include "log.h"
 #include "hal.h"
 #include "config.h"
 #include <stdint.h>
-
+Adafruit_BMP280 bmp; // I2C Interface
 #ifdef VENTSIM
-    #include<QRandomGenerator>
-    #define TEST_RAND_MIN 300
-    #define TEST_RAND_MAX 400
+#include <QRandomGenerator>
+#define TEST_RAND_MIN 300
+#define TEST_RAND_MAX 400
 
 #endif
 
@@ -67,8 +67,8 @@ end
 
 #define TM_LOG 2000
 #define P_CONV 4.01463f
-#define MAX_BIN_INPUT   614
-#define MAX_BIN_INPUT_F 614.0
+#define MAX_BIN_INPUT 1558
+#define MAX_BIN_INPUT_F 1558.0
 
 static int16_t tap_array[AVERAGE_BIN_NUMBER];
 static int32_t accumulator = 0;
@@ -78,43 +78,77 @@ static uint8_t ready_cnt = 0;
 static uint64_t tm_press;
 
 static int32_t av;
-static uint16_t rawSensorValue;
-static float inH2O = 0.0f;
+static int16_t rawSensorValue;
+static float cmH2O = 0.0f;
+float atm = 101325;
 
 #ifdef SHOW_VAL
-  static uint64_t tm_log;
+static uint64_t tm_log;
 #endif
+
+float getcmh2O(float pascals)
+{
+  return (0.1019716358 * (pascals - atm)) / 10;
+}
 
 void CalculateAveragePressure()
 {
-    //aV= 12, Pa=174.86... 0~614 --> -3.57~41.08 inches of water
-  rawSensorValue = halGetAnalogPressure();
+  //aV= 12, Pa=174.86... 0~614 --> -3.57~41.08 inches of water ---> -9.058739~1558==--->cmh2o
+
+#ifdef VENTSIM
+  rawSensorValue = QRandomGenerator::global()->bounded(TEST_RAND_MIN, TEST_RAND_MAX);
+#else
+  //   rawSensorValue = analogRead(PRESSURE_SENSOR_PIN);  //Raw digital input from pressure sensor
+  float rawSensorValuepA = 0.0;
+  rawSensorValuepA = bmp.readPressure(); //tbreplaced
+  rawSensorValue = getcmh2O(rawSensorValuepA);
+  //LOGV("BMP Reading %d", rawSensorValue);
+#endif
 
   // clamp it to the max (max value provided by the sensor)
   if (rawSensorValue >= MAX_BIN_INPUT)
-      rawSensorValue = MAX_BIN_INPUT - 1;
+    rawSensorValue = MAX_BIN_INPUT - 1;
 
-  if (ready_cnt >= AVERAGE_BIN_NUMBER)  {
-    accumulator -= tap_array[tail_idx++] ;
-    if (tail_idx >= AVERAGE_BIN_NUMBER) tail_idx = 0;
+  if (ready_cnt >= AVERAGE_BIN_NUMBER)
+  {
+    accumulator -= tap_array[tail_idx++];
+    if (tail_idx >= AVERAGE_BIN_NUMBER)
+      tail_idx = 0;
   }
-  else {
+  else
+  {
     ready_cnt++;
   }
 
   tap_array[head_idx++] = rawSensorValue;
-  if (head_idx >= AVERAGE_BIN_NUMBER) head_idx = 0;
+  if (head_idx >= AVERAGE_BIN_NUMBER)
+    head_idx = 0;
   accumulator += rawSensorValue;
 
-  av = accumulator/AVERAGE_BIN_NUMBER;
-  inH2O = P_CONV * ((av / MAX_BIN_INPUT_F) - 0.08) / 0.09;
+  av = accumulator / AVERAGE_BIN_NUMBER;
+  //   cmH2O = P_CONV * ((av / MAX_BIN_INPUT_F) - 0.08) / 0.09;
 }
 
-
 //====================================================================
-void pressInit()   {
+void pressInit()
+{
 #ifndef VENTSIM
   analogReference(DEFAULT);
+
+  if (!bmp.begin())
+  {
+    // Serial.println(F("Could not find a valid BMP280 sensor, check wiring!"));
+    // while (1);
+    LOG("bmp not working");
+  }
+
+  /* Default settings from datasheet. */
+  bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
+                  Adafruit_BMP280::SAMPLING_X2,     /* Temp. oversampling */
+                  Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
+                  Adafruit_BMP280::FILTER_X16,      /* Filtering. */
+                  Adafruit_BMP280::STANDBY_MS_500); /* Standby time. */
+
 #endif
   tm_press = halStartTimerRef();
 
@@ -123,23 +157,24 @@ void pressInit()   {
 #endif
 }
 
-
 void pressLoop()
 {
-  if (halCheckTimerExpired(tm_press, PRESSURE_READ_DELAY)) {
+  if (halCheckTimerExpired(tm_press, PRESSURE_READ_DELAY))
+  {
     CalculateAveragePressure();
     tm_press = halStartTimerRef();
   }
 
 #ifdef SHOW_VAL
   char buf[24];
-  if (halCheckTimerExpired(tm_log, TM_LOG)) {
+  if (halCheckTimerExpired(tm_log, TM_LOG))
+  {
     LOGV("av = %d", av);
 #ifndef VENTSIM
-    dtostrf(inH2O, 8, 2, buf);
+    dtostrf(cmH2O, 8, 2, buf);
     LOGV("Pa = %s\n", buf);
 #else
-    LOGV("Pa = %f\n", inH2O);
+    LOGV("Pa = %f\n", cmH2O);
 #endif
     tm_log = halStartTimerRef();
   }
@@ -148,18 +183,17 @@ void pressLoop()
 
 float pressGetFloatVal() // in InchH2O
 {
-    return inH2O;
+  return av;
 }
 int pressGetRawVal()
 {
-    return av;
+  return av;
 }
-
 
 //-----------------------------------------------------------------
 #else
 // Stubbs
-void pressInit()   { }
+void pressInit() {}
 void pressLoop() {}
 float pressGetFloatVal() { return 0.0; }
 int pressGetRawVal() { return 0; }

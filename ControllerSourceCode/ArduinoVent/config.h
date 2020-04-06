@@ -55,10 +55,12 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
  *                            
  *************************************************
  */
-#define       HW_VERSION_CSSALT_PROTO_01      1  // CSSALT Board ref 1
-#define       HW_VERSION_MV_01                0  // Marcelo's prototype (Arduino Nano)
+#define       HW_VERSION_CSSALT_PROTO_01      0  // CSSALT Board ref 1
+#define       HW_VERSION_MV_01                1  // Marcelo's prototype (Arduino Nano)
 //-------------------------------------------------
 
+#define       KEYS_JOYSTICK   1
+#define       KEYS_BUTTONS    0
 
 #if ((HW_VERSION_CSSALT_PROTO_01 == 1) && (HW_VERSION_MV_01 == 1) )
   #error "Only one HW_VERSION_xxx must be set to 1 in config.h"
@@ -98,11 +100,11 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 
 //--------- LCD Num Rows ----------
 // Default
-#define LCD_CFG_20_COLS  0
-#define LCD_CFG_16_COLS  1
+#define LCD_CFG_20_COLS  1
+#define LCD_CFG_16_COLS  0
 
-#define LCD_CFG_2_ROWS  1
-#define LCD_CFG_4_ROWS  0
+#define LCD_CFG_2_ROWS  0
+#define LCD_CFG_4_ROWS  1
 
 // Parallel LCD
 #define LCD_CFG_D7              8   // Connector Pin 11 - Digital 8
@@ -127,10 +129,19 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
  */
 //------------ Input Keys ---------------
 
+#if (KEYS_JOYSTICK == 1) 
+
+#define KEY_DECREMENT_PIN       A0
+#define KEY_INCREMENT_PIN       A1
+#define KEY_SET_PIN             5
+
+#elif (KEYS_BUTTONS = 1)
+
 #define KEY_DECREMENT_PIN       3
 #define KEY_INCREMENT_PIN       4
 #define KEY_SET_PIN             5
 
+#endif
 //------------ Output Valves -----------
 #define VALVE_ACTIVE_LOW
 
@@ -143,6 +154,8 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
   #define MONITOR_LED_PIN       13
 #endif
 
+
+#define  ALARM_SOUND_PIN        22
 //----------- PRESSURE_SENSOR ------------
 #define PREESURE_ENABLE
 #define PRESSURE_SENSOR_PIN     A7
@@ -150,11 +163,11 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 //--------- LCD Num Rows ----------
 // Default
 #define LCD_CFG_I2C
-#define LCD_CFG_20_COLS  0
-#define LCD_CFG_16_COLS  1
+#define LCD_CFG_20_COLS  1
+#define LCD_CFG_16_COLS  0
 
-#define LCD_CFG_2_ROWS  1
-#define LCD_CFG_4_ROWS  0
+#define LCD_CFG_2_ROWS  0
+#define LCD_CFG_4_ROWS  1
 
 // Parallel LCD
 #define LCD_CFG_D7              8   // Connector Pin 11 - Digital 8
@@ -176,7 +189,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
   Note: in case Stored parameters are corrupted or empty
 */
 
-#define  DEFAULT_VENT            1
+#define  DEFAULT_VENT            0
 #define  DEFAULT_BPS             15
 #define  DEFAULT_DUTY_CYCLE      0
 #define  DEFAULT_PAUSE           100
