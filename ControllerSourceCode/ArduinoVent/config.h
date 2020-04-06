@@ -135,7 +135,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define KEY_INCREMENT_PIN       A1
 #define KEY_SET_PIN             5
 
-#elif (KEYS_BUTTONS = 1)
+#elif (KEYS_BUTTONS == 1)
 
 #define KEY_DECREMENT_PIN       3
 #define KEY_INCREMENT_PIN       4

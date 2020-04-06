@@ -452,7 +452,7 @@ bool keyPressed(keys_t key)
     return value == LOW;
   }
   return false;
-#elif
+#elif (KEYS_BUTTONS == 1)
   return digitalRead(key.pin) == LOW;
 #endif
 }
@@ -475,7 +475,7 @@ bool keyReleased(keys_t key)
     return digitalRead(key.pin) == HIGH;
   }
   return false;
-#elif
+#elif (KEYS_BUTTONS == 1)
   return digitalRead(key.pin) == HIGH;
 #endif
 }
