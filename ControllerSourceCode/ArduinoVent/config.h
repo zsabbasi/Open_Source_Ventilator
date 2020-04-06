@@ -59,8 +59,8 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define       HW_VERSION_MV_01                1  // Marcelo's prototype (Arduino Nano)
 //-------------------------------------------------
 
-#define       KEYS_JOYSTICK   0
-#define       KEYS_BUTTONS    1
+#define       KEYS_JOYSTICK   1
+#define       KEYS_BUTTONS    0
 
 #if ((HW_VERSION_CSSALT_PROTO_01 == 1) && (HW_VERSION_MV_01 == 1) )
   #error "Only one HW_VERSION_xxx must be set to 1 in config.h"

@@ -19,7 +19,7 @@
  **************************************************************
 */
 
-#include "pressureD.h"//for differential pressure
+#include "pressureD.h" //for differential pressure
 #include "ui_native.h"
 #include "hal.h"
 #include "properties.h"
@@ -32,92 +32,92 @@
 
 //#define TEST_WDT // Debug only... it makes Watchdor to trigger reset when Set button is pressed
 
-#define TM_BLINK                    400   // milliseconds
-#define TM_FUNC_HOLD                500  // twoseconds
-#define BLINK_PARAMETER_VAL         1
-#define BLINK_SATUS                 2
+#define TM_BLINK 400     // milliseconds
+#define TM_FUNC_HOLD 500 // twoseconds
+#define BLINK_PARAMETER_VAL 1
+#define BLINK_SATUS 2
 
 //static int params_idx = 0;
 
-#define LCD_STATUS_ROW              0
-#define LCD_PARAMS_FIRST_ROW        1
+#define LCD_STATUS_ROW 0
+#define LCD_PARAMS_FIRST_ROW 1
 
 #if (LCD_CFG_2_ROWS == 1)
-  #define LCD_PARAMS_LAST_ROW         1
+#define LCD_PARAMS_LAST_ROW 1
 #elif (LCD_CFG_4_ROWS == 1)
-  #define LCD_PARAMS_LAST_ROW         3
+#define LCD_PARAMS_LAST_ROW 3
 #else
-  #error "At least one LCD_CFG_x_ROWS must be set to 1 in config.h"
+#error "At least one LCD_CFG_x_ROWS must be set to 1 in config.h"
 #endif
 #if ((LCD_CFG_2_ROWS == 1) && (LCD_CFG_4_ROWS == 1))
-  #error "Only one LCD_CFG_x_ROWS must be set to 1 in config.h"
+#error "Only one LCD_CFG_x_ROWS must be set to 1 in config.h"
 #endif
-
 
 #if (LCD_CFG_20_COLS == 1)
-  #define PROGRESS_NUM_CHARS  6
+#define PROGRESS_NUM_CHARS 6
 #elif (LCD_CFG_16_COLS == 1)
-  #define PROGRESS_NUM_CHARS  6
+#define PROGRESS_NUM_CHARS 6
 #else
-  #error "At least one LCD_CFG_XX_COLS must be set to 1 in config.h"
+#error "At least one LCD_CFG_XX_COLS must be set to 1 in config.h"
 #endif
 #if ((LCD_CFG_20_COLS == 1) && (LCD_NUM_COLS == 1))
-  #error "Only one LCD_CFG_XX_COLS must be set to 1 in config.h"
+#error "Only one LCD_CFG_XX_COLS must be set to 1 in config.h"
 #endif
 
-#define LCD_PARAMS_NUM_ROWS         ( (LCD_PARAMS_LAST_ROW - LCD_PARAMS_FIRST_ROW) + 1)
+#define LCD_PARAMS_NUM_ROWS ((LCD_PARAMS_LAST_ROW - LCD_PARAMS_FIRST_ROW) + 1)
 
-#define PARAM_VAL_MAX_SIZE  5
-#define PARAM_VAL_START_COL (LCD_NUM_COLS- PARAM_VAL_MAX_SIZE)
+#define PARAM_VAL_MAX_SIZE 5
+#define PARAM_VAL_START_COL (LCD_NUM_COLS - PARAM_VAL_MAX_SIZE)
 
-#define PROGRESS_ROW        0
-#define PROGRESS_COL       (LCD_NUM_COLS - PROGRESS_NUM_CHARS)
+#define PROGRESS_ROW 0
+#define PROGRESS_COL (LCD_NUM_COLS - PROGRESS_NUM_CHARS)
 #define PROGRESS_CHARACTER '|'
 
-static const char * st_txt[3] = {
-    (const char *) STR_IDLE,
-    (const char *) STR_RUN,
-    (const char *) STR_ERR
-};
+static const char *st_txt[3] = {
+    (const char *)STR_IDLE,
+    (const char *)STR_RUN,
+    (const char *)STR_ERR};
 
-typedef enum {
-    PARAM_INT = 1,
-    PARAM_TXT_OPTIONS,
-    PARAM_TEXT_GET_VAL,
+typedef enum
+{
+  PARAM_INT = 1,
+  PARAM_TXT_OPTIONS,
+  PARAM_TEXT_GET_VAL,
 
-    PARAM_END
+  PARAM_END
 
 } p_type_t;
 
 typedef void (*propchancefunc_t)(int);
 typedef int (*propgetfunc_t)();
-typedef char * (*valgetfunc_t)();
+typedef char *(*valgetfunc_t)();
 
-
-typedef struct params_st {
-    p_type_t        type;
-    const char *    name;
-    int             val;
-    int             step;
-    int             min;
-    int             max;
-    const char **   options;
-    bool            quickUpdate;
-    propchancefunc_t handler;
-    union {
-      propgetfunc_t   propGetter;
-      valgetfunc_t    valGetter;
-    } getter;
+typedef struct params_st
+{
+  p_type_t type;
+  const char *name;
+  int val;
+  int step;
+  int min;
+  int max;
+  const char **options;
+  bool quickUpdate;
+  propchancefunc_t handler;
+  union {
+    propgetfunc_t propGetter;
+    valgetfunc_t valGetter;
+  } getter;
 
 } params_t;
 
-typedef struct display_vals_st {
-    const char *    name;
-    bool            update;
-    valgetfunc_t   valGetter;
+typedef struct display_vals_st
+{
+  const char *name;
+  bool update;
+  valgetfunc_t valGetter;
 } display_vals_t;
 
-static CUiNative * uiNative;
+static CUiNative *uiNative;
 
 void uiNativeInit()
 {
@@ -130,516 +130,567 @@ void uiNativeLoop()
 
 void CUiNative::updateStatus(bool blank)
 {
-  char buf[LCD_NUM_COLS+1];
+  char buf[LCD_NUM_COLS + 1];
   memset(buf, 0x20, LCD_NUM_COLS);
   buf[LCD_NUM_COLS] = 0;
   int len;
 
-  if (alarm_mode == true) {
-    if (blank == false) {
+  if (alarm_mode == true)
+  {
+    if (blank == false)
+    {
       strcpy(buf, alarm_msg);
       len = strlen(buf);
     }
-    else len = 0;
+    else
+      len = 0;
   }
-  else {
-    len = sprintf(buf, "st=%s", (const char *) st_txt[(int) state_idx]);
+  else
+  {
+    len = sprintf(buf, "st=%s", (const char *)st_txt[(int)state_idx]);
   }
   buf[len] = 0x20;
   halLcdWrite(0, LCD_STATUS_ROW, buf);
 }
 
-static void handleChangeVent(int val) {
-    propSetVent(val);
-    if (val) {
-        alarmResetAll();
-        uiNative->state_idx = STATE_RUN;
-    }
-    else {
-        uiNative->state_idx = STATE_IDLE;
-    }
-    uiNative->updateStatus(false);
+static void handleChangeVent(int val)
+{
+  propSetVent(val);
+  if (val)
+  {
+    alarmResetAll();
+    uiNative->state_idx = STATE_RUN;
+  }
+  else
+  {
+    uiNative->state_idx = STATE_IDLE;
+  }
+  uiNative->updateStatus(false);
 }
 
-static void handleChangeBps(int val) {
-    propSetBps(val);
+static void handleChangeBps(int val)
+{
+  propSetBps(val);
 }
 
-static void handleChangeDutyCycle(int val) {
-     propSetDutyCycle(val);
+static void handleChangeDutyCycle(int val)
+{
+  propSetDutyCycle(val);
 }
 
-static void handleChangePause(int val) {
-     propSetPause(val);
+static void handleChangePause(int val)
+{
+  propSetPause(val);
 }
 
-static void handleChangeLcdAutoOff(int val) {
-     propSetLcdAutoOff(val);
+static void handleChangeLcdAutoOff(int val)
+{
+  propSetLcdAutoOff(val);
 }
 
 //static void handleSave(int val){}
 
-static int handleGetVent() {
-    return propGetVent();
-}
-
-static int handleGetBps() {
-    return propGetBps();
-}
-
-static int handleGetDutyCycle() {
-     return propGetDutyCycle();
-}
-
-static int handleGetPause() {
-     return propGetPause();
-}
-
-static int handleGetLcdAutoOff() {
-     return propGetLcdAutoOff();
-}
-
-static char *  getFlowRateF()
+static int handleGetVent()
 {
- static char buf[8];
- buf[sizeof(buf) - 1] = 0;
- float p=getPsi(A7);
-
- float f = getFlowRate();
-#ifndef VENTSIM
-    dtostrf(getFlowRate(), 2, 2, buf);
-#else
-    snprintf(buf, sizeof(buf) - 1, "%f", f);
-#endif
-// char neg[2]="- ";
-
- if(p<0)return strcat("-",buf);
-if(p==0)return "0";
-else return buf;
-    // return "1001";
+  return propGetVent();
 }
 
-
-static char *  getPressure()
+static int handleGetBps()
 {
- static char buf[8];
- buf[sizeof(buf) - 1] = 0;
- float f = pressGetFloatVal();
-#ifndef VENTSIM
-    dtostrf(pressGetFloatVal(), 2, 2, buf);
-#else
-    snprintf(buf, sizeof(buf) - 1, "%f", f);
-#endif
-    // return buf;
-    return "1001";
+  return propGetBps();
 }
 
-static const char * onOffTxt[] = {
+static int handleGetDutyCycle()
+{
+  return propGetDutyCycle();
+}
+
+static int handleGetPause()
+{
+  return propGetPause();
+}
+
+static int handleGetLcdAutoOff()
+{
+  return propGetLcdAutoOff();
+}
+
+static char *getFlowRateF()
+{
+  static char buf[8];
+  buf[sizeof(buf) - 1] = 0;
+  //float p = getPsi(PRESSURE_SENSOR_PIN);
+
+  float f = getFlowRate();
+#ifndef VENTSIM
+  dtostrf(getFlowRate(), 2, 2, buf);
+#else
+  snprintf(buf, sizeof(buf) - 1, "%f", f);
+#endif
+  // char neg[2]="- ";
+
+  if (f < 0)
+    return strcat("-", buf);
+  if (f == 0)
+    return "0";
+  else
+    return buf;
+  // return "1001";
+}
+
+static char *getPressure()
+{
+  static char buf[8];
+  buf[sizeof(buf) - 1] = 0;
+  float f = pressGetFloatVal();
+#ifndef VENTSIM
+  dtostrf(pressGetFloatVal(), 2, 2, buf);
+#else
+  snprintf(buf, sizeof(buf) - 1, "%f", f);
+#endif
+  // return buf;
+  return "1001";
+}
+
+static const char *onOffTxt[] = {
     STR_OFF,
     STR_ON,
 };
 
-static const char * yesNoTxt[] = {
-     STR_NO,
-     STR_YES,
+static const char *yesNoTxt[] = {
+    STR_NO,
+    STR_YES,
 };
 
-static /* const */ params_t params[] /* PROGMEM */ =  {
-     {  PARAM_TEXT_GET_VAL,       // type
-      "Flow Rate",             // name
-      0,                        // val
-      1,                        // step
-      0,                        // min
-      1,                        // max
-      0,                        // text array for options
-      false,                    // no dynamic changes
-      0,  // change prop function
-{getFlowRateF}
-    },  { PARAM_TXT_OPTIONS,        // type
-      STR_VENTILATOR,           // name
-      0,                        // val
-      1,                        // step
-      0,                        // min
-      1,                        // max
-      onOffTxt ,                // text array for options
-      false,                    // no dynamic changes
-      handleChangeVent,         // change prop function
-      { handleGetVent },        // propGetter
+static /* const */ params_t params[] /* PROGMEM */ = {
+    {
+        PARAM_TXT_OPTIONS, // type
+        STR_VENTILATOR,    // name
+        0,                 // val
+        1,                 // step
+        0,                 // min
+        1,                 // max
+        onOffTxt,          // text array for options
+        false,             // no dynamic changes
+        handleChangeVent,  // change prop function
+        {handleGetVent},   // propGetter
     },
-    { PARAM_INT,                // type
-      STR_BPM,                  // name
-      10,                       // val
-      5,                        // step
-      10,                       // min
-      30,                       // max
-      0,                        // text array for options
-      true,                     // no dynamic changes
-      handleChangeBps,          // change prop function
-      { handleGetBps }          // propGetter
+    {
+        PARAM_INT,       // type
+        STR_BPM,         // name
+        10,              // val
+        5,               // step
+        10,              // min
+        30,              // max
+        0,               // text array for options
+        true,            // no dynamic changes
+        handleChangeBps, // change prop function
+        {handleGetBps}   // propGetter
     },
 
-    { PARAM_TXT_OPTIONS,        // type
-      STR_DUTY_CYCLE,           // name
-      0,                        // val
-      1,                        // step
-      0,                        // min
-      3,                        // max
-      propDutyCycleTxt,         // text array for options
-      true,                     // no dynamic changes
-      handleChangeDutyCycle,    // change prop function
-      { handleGetDutyCycle }    // propGetter
+    {
+        PARAM_TXT_OPTIONS,     // type
+        STR_DUTY_CYCLE,        // name
+        0,                     // val
+        1,                     // step
+        0,                     // min
+        3,                     // max
+        propDutyCycleTxt,      // text array for options
+        true,                  // no dynamic changes
+        handleChangeDutyCycle, // change prop function
+        {handleGetDutyCycle}   // propGetter
     },
 
-    { PARAM_INT,                // type
-      STR_PAUSE,                // name
-      200,                      // val
-      50,                       // step
-      0,                        // min
-      2000,                     // max
-      0,                        // text array for options
-      true,                     // no dynamic changes
-      handleChangePause,        // change prop function
-      { handleGetPause }        // propGetter
+    {
+        PARAM_INT,         // type
+        STR_PAUSE,         // name
+        200,               // val
+        50,                // step
+        0,                 // min
+        2000,              // max
+        0,                 // text array for options
+        true,              // no dynamic changes
+        handleChangePause, // change prop function
+        {handleGetPause}   // propGetter
     },
-    { PARAM_TXT_OPTIONS,        // type
-      STR_LCD_AUTO_OFF,         // name
-      0,                        // val
-      1,                        // step
-      0,                        // min
-      1,                        // max
-      onOffTxt,                 // text array for options
-      false,                    // no dynamic changes
-      handleChangeLcdAutoOff,   // change prop function
-      { handleGetLcdAutoOff }   // propGetter
+    {
+        PARAM_TXT_OPTIONS,      // type
+        STR_LCD_AUTO_OFF,       // name
+        0,                      // val
+        1,                      // step
+        0,                      // min
+        1,                      // max
+        onOffTxt,               // text array for options
+        false,                  // no dynamic changes
+        handleChangeLcdAutoOff, // change prop function
+        {handleGetLcdAutoOff}   // propGetter
     },
 
-    {  PARAM_TEXT_GET_VAL,       // type
-      STR_PRESSURE,             // name
-      0,                        // val
-      1,                        // step
-      0,                        // min
-      1,                        // max
-      0,                        // text array for options
-      false,                    // no dynamic changes
-      0,  // change prop function
+    {
+        PARAM_TEXT_GET_VAL, // type
+        STR_PRESSURE,       // name
+        0,                  // val
+        1,                  // step
+        0,                  // min
+        1,                  // max
+        0,                  // text array for options
+        false,              // no dynamic changes
+        0,                  // change prop function
 #ifdef VENTSIM
-      .getter.valGetter = &getPressure      // propGetter
+        .getter.valGetter = &getPressure // propGetter
 #else
-      { getPressure  }  // propGetter
+        {getPressure} // propGetter
 #endif
     },
 };
 
-#define NUM_PARAMS (sizeof(params)/sizeof(params_t))
+#define NUM_PARAMS (sizeof(params) / sizeof(params_t))
 
 //------------ Global -----------
 CUiNative::CUiNative()
 {
-    params_idx = 0;
-    ui_state = SHOW_MODE;
-    check_set_hold = false;
-    check_decrement_hold = false;
-    ignore_release = 0;
-    state_idx = STATE_IDLE;
-    blink_mask = 0;
-    blink_phase = 0;
-    alarm_mode = false;
-    bps = 10;
-    dutyCycle = 0.1f;
+  params_idx = 0;
+  ui_state = SHOW_MODE;
+  check_set_hold = false;
+  check_decrement_hold = false;
+  ignore_release = 0;
+  state_idx = STATE_IDLE;
+  blink_mask = 0;
+  blink_phase = 0;
+  alarm_mode = false;
+  bps = 10;
+  dutyCycle = 0.1f;
 
-    initParams();
-    tm_blink = halStartTimerRef();
-    updateStatus(false);
-    updateParams();
+  initParams();
+  tm_blink = halStartTimerRef();
+  updateStatus(false);
+  updateParams();
 }
 
 CUiNative::~CUiNative()
 {
-
 }
 
 void CUiNative::initParams()
 {
   unsigned int i;
-  for (i=0; i<NUM_PARAMS; i++) {
-    if (params[i].getter.propGetter) {
+  for (i = 0; i < NUM_PARAMS; i++)
+  {
+    if (params[i].getter.propGetter)
+    {
       params[i].val = params[i].getter.propGetter();
     }
   }
 
-  if (propGetVent()) {
-      state_idx = STATE_RUN;
+  if (propGetVent())
+  {
+    state_idx = STATE_RUN;
   }
-  else {
-      state_idx = STATE_IDLE;
+  else
+  {
+    state_idx = STATE_IDLE;
   }
 }
 
-void CUiNative::fillValBuf(char * buf, int idx)
+void CUiNative::fillValBuf(char *buf, int idx)
 {
-    if (params[idx].type == PARAM_INT)
-        sprintf(buf, "%5d", params[idx].val);
-    else if (params[idx].type == PARAM_TXT_OPTIONS)
-        strcpy(buf, params[idx].options[ params[idx].val ]);
-    else if (params[idx].type == PARAM_TEXT_GET_VAL)
-        sprintf(buf, "%s", params[idx].getter.valGetter());
-    else
-        LOG("blinker: Unexpected type");
+  if (params[idx].type == PARAM_INT)
+    sprintf(buf, "%5d", params[idx].val);
+  else if (params[idx].type == PARAM_TXT_OPTIONS)
+    strcpy(buf, params[idx].options[params[idx].val]);
+  else if (params[idx].type == PARAM_TEXT_GET_VAL)
+    sprintf(buf, "%s", params[idx].getter.valGetter());
+  else
+    LOG("blinker: Unexpected type");
 }
-
 
 void CUiNative::loop()
 {
-    checkFuncHold();
-    blinker();
-    updateProgress();
+  checkFuncHold();
+  blinker();
+  updateProgress();
 }
 
 void CUiNative::blinker()
-{   
-    char buf[(LCD_NUM_COLS - PARAM_VAL_START_COL) + 1];
-    int len = LCD_NUM_COLS - PARAM_VAL_START_COL;
-    memset(buf, 0x20, (size_t) len); // spaces
-    buf[len] = 0; // NULL terminate
+{
+  char buf[(LCD_NUM_COLS - PARAM_VAL_START_COL) + 1];
+  int len = LCD_NUM_COLS - PARAM_VAL_START_COL;
+  memset(buf, 0x20, (size_t)len); // spaces
+  buf[len] = 0;                   // NULL terminate
 
-    if (halCheckTimerExpired(tm_blink, TM_BLINK)) {
-        tm_blink = halStartTimerRef();
+  if (halCheckTimerExpired(tm_blink, TM_BLINK))
+  {
+    tm_blink = halStartTimerRef();
 
-//        if (blink_mask == 0) return;
+    //        if (blink_mask == 0) return;
 
-        blink_phase++;
-        blink_phase &= 1;
+    blink_phase++;
+    blink_phase &= 1;
 
-        //-------- paramater Blinking ------------
-        if (blink_mask & BLINK_PARAMETER_VAL) {
-            if (blink_phase) {
-                fillValBuf(buf, params_idx);
-            }
-            halLcdWrite(PARAM_VAL_START_COL, LCD_PARAMS_FIRST_ROW, buf);
-        }
-
-        //-------- other Blinking... ------------
-
-
-        else {
-            updateParams();
-        }
-
-        //---------- Alarm blink ------------
-        if (alarm_mode == true) {
-            if (blink_phase) {
-                updateStatus(true);
-            }
-            else {
-                updateStatus(false);
-            }
-        }
-
+    //-------- paramater Blinking ------------
+    if (blink_mask & BLINK_PARAMETER_VAL)
+    {
+      if (blink_phase)
+      {
+        fillValBuf(buf, params_idx);
+      }
+      halLcdWrite(PARAM_VAL_START_COL, LCD_PARAMS_FIRST_ROW, buf);
     }
+
+    //-------- other Blinking... ------------
+
+    else
+    {
+      updateParams();
+    }
+
+    //---------- Alarm blink ------------
+    if (alarm_mode == true)
+    {
+      if (blink_phase)
+      {
+        updateStatus(true);
+      }
+      else
+      {
+        updateStatus(false);
+      }
+    }
+  }
 }
 
 void CUiNative::refreshValue(bool force)
 {
-    char buf[(LCD_NUM_COLS - PARAM_VAL_START_COL) + 1];
-    int len = LCD_NUM_COLS - PARAM_VAL_START_COL;
+  char buf[(LCD_NUM_COLS - PARAM_VAL_START_COL) + 1];
+  int len = LCD_NUM_COLS - PARAM_VAL_START_COL;
 
-    if (params[params_idx].quickUpdate || force) {
-        params[params_idx].handler(params[params_idx].val);
-    }
+  if (params[params_idx].quickUpdate || force)
+  {
+    params[params_idx].handler(params[params_idx].val);
+  }
 
-    memset(buf, 0x20, (size_t) len); // spaces
-    buf[len] = 0; // NULL terminate
+  memset(buf, 0x20, (size_t)len); // spaces
+  buf[len] = 0;                   // NULL terminate
 
-    tm_blink = halStartTimerRef();
-    fillValBuf(buf, params_idx);
-    halLcdWrite(PARAM_VAL_START_COL, LCD_PARAMS_FIRST_ROW, buf);
+  tm_blink = halStartTimerRef();
+  fillValBuf(buf, params_idx);
+  halLcdWrite(PARAM_VAL_START_COL, LCD_PARAMS_FIRST_ROW, buf);
 }
 
 void CUiNative::updateProgress()
 {
-    if (alarm_mode == true) return;
+  if (alarm_mode == true)
+    return;
 
-    int i;
-    char buf[PROGRESS_NUM_CHARS+1];
-    memset(buf, 0x20, sizeof (buf)); // spaces
-    buf[sizeof (buf) - 1] = 0;
+  int i;
+  char buf[PROGRESS_NUM_CHARS + 1];
+  memset(buf, 0x20, sizeof(buf)); // spaces
+  buf[sizeof(buf) - 1] = 0;
 
-    //B_STATE_t s = breatherGetState();
-    int p = (breatherGetPropress() * PROGRESS_NUM_CHARS) / 90;
-    if (p > PROGRESS_NUM_CHARS) p = PROGRESS_NUM_CHARS;
-    if (p == progress)
-        return;
+  //B_STATE_t s = breatherGetState();
+  int p = (breatherGetPropress() * PROGRESS_NUM_CHARS) / 90;
+  if (p > PROGRESS_NUM_CHARS)
+    p = PROGRESS_NUM_CHARS;
+  if (p == progress)
+    return;
 
-    progress = p;
-    for(i=0; i<progress; i++) {
-        buf[i] = PROGRESS_CHARACTER;
-    }
-    halLcdWrite(PROGRESS_COL, PROGRESS_ROW, buf);
+  progress = p;
+  for (i = 0; i < progress; i++)
+  {
+    buf[i] = PROGRESS_CHARACTER;
+  }
+  halLcdWrite(PROGRESS_COL, PROGRESS_ROW, buf);
 }
 
 void CUiNative::updateParameterValue()
 {
-
 }
 
 void CUiNative::blinkOn(int mask)
 {
-    blink_mask |= mask;
+  blink_mask |= mask;
 }
 
 void CUiNative::blinkOff(int mask)
 {
-    blink_mask &= ~mask;
-    updateParams();
+  blink_mask &= ~mask;
+  updateParams();
 }
 
 void CUiNative::updateParams()
 {
   unsigned int idx = params_idx;
   unsigned int i;
-  char buf[LCD_NUM_COLS+1];
+  char buf[LCD_NUM_COLS + 1];
 
-  for (i=0; i < LCD_PARAMS_NUM_ROWS; i++) {
-      memset(buf, 0x20, LCD_NUM_COLS);
-      buf[LCD_NUM_COLS] = 0;
-      if (i == 0) {
-        buf[0] = '>';
-      }
-      memcpy(&buf[1], params[idx].name, strlen(params[idx].name));
-      fillValBuf(&buf[PARAM_VAL_START_COL], idx);
-      halLcdWrite(0, LCD_PARAMS_FIRST_ROW + i, buf);
+  for (i = 0; i < LCD_PARAMS_NUM_ROWS; i++)
+  {
+    memset(buf, 0x20, LCD_NUM_COLS);
+    buf[LCD_NUM_COLS] = 0;
+    if (i == 0)
+    {
+      buf[0] = '>';
+    }
+    memcpy(&buf[1], params[idx].name, strlen(params[idx].name));
+    fillValBuf(&buf[PARAM_VAL_START_COL], idx);
+    halLcdWrite(0, LCD_PARAMS_FIRST_ROW + i, buf);
 
-      idx++;
-      if (idx >= NUM_PARAMS) idx = 0;
+    idx++;
+    if (idx >= NUM_PARAMS)
+      idx = 0;
   }
 }
 
-void CUiNative::scroolParams( bool down)
+void CUiNative::scroolParams(bool down)
 {
-    if (down) {
-      params_idx++;
-      if ( params_idx >= (int) NUM_PARAMS)
-          params_idx = 0;
-    }
-    else {
-      params_idx--;
-      if (params_idx < 0)
-          params_idx = NUM_PARAMS - 1;
-    }
+  if (down)
+  {
+    params_idx++;
+    if (params_idx >= (int)NUM_PARAMS)
+      params_idx = 0;
+  }
+  else
+  {
+    params_idx--;
+    if (params_idx < 0)
+      params_idx = NUM_PARAMS - 1;
+  }
 
-    updateParams();
+  updateParams();
 }
 
 void CUiNative::checkFuncHold()
 {
-    if (ui_state != SHOW_MODE) {
-        return;
-    }
+  if (ui_state != SHOW_MODE)
+  {
+    return;
+  }
 
-    //-------- process KEY_SET hold ------
-    if (check_set_hold) {
-      if (halCheckTimerExpired(tm_set_hold, TM_FUNC_HOLD)) {
-        blinkOn(BLINK_PARAMETER_VAL);
-        LOG("** ENTER mode");
-        ui_state = ENTER_MODE;
-      }
+  //-------- process KEY_SET hold ------
+  if (check_set_hold)
+  {
+    if (halCheckTimerExpired(tm_set_hold, TM_FUNC_HOLD))
+    {
+      blinkOn(BLINK_PARAMETER_VAL);
+      LOG("** ENTER mode");
+      ui_state = ENTER_MODE;
     }
+  }
 
-    //-------- process KEY_DECREMENT hold ------
-    if (check_decrement_hold) {
-      if (halCheckTimerExpired(tm_decrement_hold, TM_FUNC_HOLD)) {
-        params_idx = -1;
-        scroolParams(true);
-      }
+  //-------- process KEY_DECREMENT hold ------
+  if (check_decrement_hold)
+  {
+    if (halCheckTimerExpired(tm_decrement_hold, TM_FUNC_HOLD))
+    {
+      params_idx = -1;
+      scroolParams(true);
     }
+  }
 }
 
-propagate_t CUiNative::onEvent(event_t * event)
+propagate_t CUiNative::onEvent(event_t *event)
 {
-    //char b[64];
-    //sprintf(b, "onEvent: type = %d, key = %d\n", event->type, event->iParam);
-    //LOG( (char *) b);
+  //char b[64];
+  //sprintf(b, "onEvent: type = %d, key = %d\n", event->type, event->iParam);
+  //LOG( (char *) b);
 
-    if (event->type == EVT_ALARM_DISPLAY_ON) {
-        alarm_mode = true;
-        strcpy(alarm_msg, event->param.tParam);
-        return PROPAGATE_STOP;
-    }
+  if (event->type == EVT_ALARM_DISPLAY_ON)
+  {
+    alarm_mode = true;
+    strcpy(alarm_msg, event->param.tParam);
+    return PROPAGATE_STOP;
+  }
 
-    if (event->type == EVT_ALARM_DISPLAY_OFF) {
-        alarm_mode = false;
-        updateStatus(false);
-        return PROPAGATE_STOP;
-    }
+  if (event->type == EVT_ALARM_DISPLAY_OFF)
+  {
+    alarm_mode = false;
+    updateStatus(false);
+    return PROPAGATE_STOP;
+  }
 
-    //============== SHOW Mode =============
-    if (ui_state == SHOW_MODE) {
+  //============== SHOW Mode =============
+  if (ui_state == SHOW_MODE)
+  {
 
-        //--------- SET Key -------------
-        if (event->param.iParam == KEY_SET)  {
-            if (event->type == EVT_KEY_RELEASE)  {
-                if (ignore_release) {
-                    ignore_release--;
-                    return PROPAGATE;
-                }
-                // scroolParams(true);
-                check_set_hold = false;
-            }
-            else if (event->type == EVT_KEY_PRESS) {
-                tm_set_hold = halStartTimerRef();
-                check_set_hold = true;
+    //--------- SET Key -------------
+    if (event->param.iParam == KEY_SET)
+    {
+      if (event->type == EVT_KEY_RELEASE)
+      {
+        if (ignore_release)
+        {
+          ignore_release--;
+          return PROPAGATE;
+        }
+        // scroolParams(true);
+        check_set_hold = false;
+      }
+      else if (event->type == EVT_KEY_PRESS)
+      {
+        tm_set_hold = halStartTimerRef();
+        check_set_hold = true;
 #ifdef TEST_WDT
-                // test WDT
-                delay(2000); // triggers reset via WDT
+        // test WDT
+        delay(2000); // triggers reset via WDT
 #endif
-            }
-        }
-
-        //------------- Decrement key --------------
-        if (event->param.iParam == KEY_DECREMENT) {
-            if (event->type == EVT_KEY_PRESS)  {
-              scroolParams(false);
-              tm_decrement_hold = halStartTimerRef();
-              check_decrement_hold = true;
-            }
-            else {
-                check_decrement_hold = false;
-            }
-        }
-
-        //------------- increment key --------------
-        if (event->param.iParam == KEY_INCREMENT && event->type == EVT_KEY_PRESS)  {
-            scroolParams(true);
-        }
+      }
     }
 
-    //============== ENTER Mode =============
-    else if (ui_state == ENTER_MODE) {
-
-        //--------- Function Key -------------
-        if (event->param.iParam == KEY_SET && event->type == EVT_KEY_PRESS)  {
-            blinkOff(BLINK_PARAMETER_VAL);
-            LOG("** SHOW mode");
-            ui_state = SHOW_MODE;
-            check_set_hold = false;
-            ignore_release = 1;
-            refreshValue(true);
-        }
-
-        //------- Right (UP) Key
-        if (event->param.iParam == KEY_INCREMENT && event->type == EVT_KEY_PRESS)  {
-          if (params[params_idx].val < params[params_idx].max) {
-              params[params_idx].val += params[params_idx].step;
-              refreshValue(false);
-          }
-        }
-        if (event->param.iParam == KEY_DECREMENT && event->type == EVT_KEY_PRESS)  {
-          if (params[params_idx].val > params[params_idx].min) {
-              params[params_idx].val -= params[params_idx].step;
-              refreshValue(false);
-          }
-        }
+    //------------- Decrement key --------------
+    if (event->param.iParam == KEY_DECREMENT)
+    {
+      if (event->type == EVT_KEY_PRESS)
+      {
+        scroolParams(false);
+        tm_decrement_hold = halStartTimerRef();
+        check_decrement_hold = true;
+      }
+      else
+      {
+        check_decrement_hold = false;
+      }
     }
 
-    return PROPAGATE;
+    //------------- increment key --------------
+    if (event->param.iParam == KEY_INCREMENT && event->type == EVT_KEY_PRESS)
+    {
+      scroolParams(true);
+    }
+  }
+
+  //============== ENTER Mode =============
+  else if (ui_state == ENTER_MODE)
+  {
+
+    //--------- Function Key -------------
+    if (event->param.iParam == KEY_SET && event->type == EVT_KEY_PRESS)
+    {
+      blinkOff(BLINK_PARAMETER_VAL);
+      LOG("** SHOW mode");
+      ui_state = SHOW_MODE;
+      check_set_hold = false;
+      ignore_release = 1;
+      refreshValue(true);
+    }
+
+    //------- Right (UP) Key
+    if (event->param.iParam == KEY_INCREMENT && event->type == EVT_KEY_PRESS)
+    {
+      if (params[params_idx].val < params[params_idx].max)
+      {
+        params[params_idx].val += params[params_idx].step;
+        refreshValue(false);
+      }
+    }
+    if (event->param.iParam == KEY_DECREMENT && event->type == EVT_KEY_PRESS)
+    {
+      if (params[params_idx].val > params[params_idx].min)
+      {
+        params[params_idx].val -= params[params_idx].step;
+        refreshValue(false);
+      }
+    }
+  }
+
+  return PROPAGATE;
 }
