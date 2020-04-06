@@ -29,7 +29,7 @@
 
 
 #define QUEUE_SIZE 6
-#define NUM_MAX_LISNERS 4
+#define NUM_MAX_LISTENERS 4
 
 //extern void LOG(const char * txt);
 
@@ -39,16 +39,16 @@
  static int eventQIdxOut = 0;
  static int eventQIdxCount = 0;
 
- static CEvent * lisners[NUM_MAX_LISNERS];
- static int num_lisners = 0;
+ static CEvent * listeners[NUM_MAX_LISTENERS];
+ static int num_listeners = 0;
 
  void evtDispatchAll()
  {
      int i;
      propagate_t ret;
      while (eventQIdxCount>0) {
-         for (i=0; i<num_lisners; i++) {
-             ret = lisners[i]->onEvent(&eventQ[eventQIdxOut]);
+         for (i=0; i<num_listeners; i++) {
+             ret = listeners[i]->onEvent(&eventQ[eventQIdxOut]);
              if (ret == PROPAGATE_STOP)
                  break;
          }
@@ -61,8 +61,8 @@
 
  CEvent::CEvent()
  {
-     if (num_lisners < NUM_MAX_LISNERS) {
-         lisners[num_lisners++] = this;
+     if (num_listeners < NUM_MAX_LISTENERS) {
+         listeners[num_listeners++] = this;
      }
      else {
          LOG("critical error, no room for CEvent");
@@ -98,7 +98,7 @@
 
  void CEvent::post (event_t * event)
  {
-     if (eventQIdxCount >= NUM_MAX_LISNERS ) {
+     if (eventQIdxCount >= NUM_MAX_LISTENERS ) {
          LOG("critical error: Event queue full");
          return;
      }
