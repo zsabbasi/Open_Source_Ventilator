@@ -19,7 +19,7 @@
  **************************************************************
 */
 
-
+#include <SoftwareSerial.h>
 #include "breather.h"
 #include "properties.h"
 #include "hal.h"
@@ -30,6 +30,25 @@
 #define MINUTE_MILLI 60000
 #define TM_WAIT_TO_OUT 50 // 50 milliseconds
 #define TM_STOPPING 4000 // 4 seconds to stop
+
+float serialSendParams[10];
+
+void addtoSerialBuff(float gets[5]){
+    for(int i=0;i<5;i++)
+    serialSendParams[i]=gets[i];
+}
+int iterCount=0;
+
+SoftwareSerial monitor(19,18);//set for rx,tx accordingly to that of board
+
+//send valuestoserialbuff
+bool sendSerialBuff(){
+    monitor.begin(9600);
+    if(!monitor.available())return false;
+
+    for(int i=0;i<5;i++)monitor.write(serialSendParams[i]);
+    return true;
+}
 
 
 static int curr_pause;
@@ -179,7 +198,19 @@ void breatherLoop()
         count5700 = 0;
     }
 
-
+//for serial 
+iterCount+=1;
+if(iterCount%10==0){
+float gets[5]={
+propGetDutyCycle(),
+propGetBps(),
+pressGetRawVal(),
+getFlowRate(),
+(float)propGetVent()};
+// getPsi();mx5700 not necessary differential pressure
+addtoSerialBuff(gets);
+sendSerialBuff();//send to serial the float array
+}
     if (b_state != B_ST_STOPPED && b_state != B_ST_STOPPING && propGetVent() == 0) {
         // force stop
         tm_start = halStartTimerRef();

@@ -2,7 +2,7 @@
 #include "hal.h"
 #include <SoftwareSerial.h>
 
-SoftwareSerial *monitor;
+// SoftwareSerial *monitor;
 
 bool sendToMonitor(char* data, int dataLen){
 
@@ -26,8 +26,8 @@ uint8_t resetFlags = 0;
 //getPsi(A5); //PIN 8
 //float *vals=new float;
 void setup() {
-  monitor=new SoftwareSerial(19,18);//Serial data to Monitor
-  monitor->begin(19200);
+  // monitor=new SoftwareSerial(19,18);//Serial data to Monitor
+  // monitor->begin(19200);
   resetFlagsInit();
   halInit(resetFlags);
   ventSetup();
