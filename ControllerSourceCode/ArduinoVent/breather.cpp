@@ -64,7 +64,7 @@ void breatherStartCycle()
     b_state = B_ST_IN;
     halValveOutOff();
     halValveInOn();
-
+    halValvePressureOn();
 //#ifdef VENTSIM
 //  char buf[256];
 //  sprintf(buf, "  curr_total_cycle_milli = %d\n  curr_pause = %d\n  curr_in_milli = %d\n  curr_out_milli = %d\n",
@@ -118,7 +118,7 @@ static void fsmIn()
     }
 
     //------ check for high pressure hardcode to 35 InchH2O -> 531 int
-    if (pressGetRawVal() > 1301.7) {
+    if (pressGetRawVal() > 88) {
       CEvent::post(EVT_ALARM, EVT_ALARM_HIGH_PRESSURE);
     }
 }
@@ -157,6 +157,7 @@ static void fsmStopping()
         b_state = B_ST_STOPPED;
         halValveOutOff();
         halValveInOff();
+        halValvePressureOff();
     }
 }
 

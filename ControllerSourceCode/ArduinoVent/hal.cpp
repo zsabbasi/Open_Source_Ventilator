@@ -212,9 +212,9 @@ void halInit(uint8_t reset_val)
   
   pinMode(VALVE_PRESSURE_PIN, OUTPUT);     // set pin to input
   #ifdef VALVE_ACTIVE_LOW
-    digitalWrite(VALVE_PRESSURE_PIN, LOW);
-  #else
     digitalWrite(VALVE_PRESSURE_PIN, HIGH);
+  #else
+    digitalWrite(VALVE_PRESSURE_PIN, LOW);
   #endif
 
   tm_key_sampling = halStartTimerRef();
@@ -426,7 +426,22 @@ void halValveOutOff()
   digitalWrite(VALVE_OUT_PIN, LOW);
 #endif
 }
-
+void halValvePressureOn()
+{
+#ifdef VALVE_ACTIVE_LOW
+  digitalWrite(VALVE_PRESSURE_PIN, LOW);
+#else
+  digitalWrite(VALVE_PRESSURE_PIN, HIGH);
+#endif
+}
+void halValvePressureOff()
+{
+#ifdef VALVE_ACTIVE_LOW
+  digitalWrite(VALVE_PRESSURE_PIN, HIGH);
+#else
+  digitalWrite(VALVE_PRESSURE_PIN, LOW);
+#endif
+}
 //---------- Analog pressure sensor -----------
 uint16_t halGetAnalogPressure()
 {

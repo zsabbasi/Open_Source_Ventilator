@@ -80,6 +80,8 @@ void halValveInOn();
 void halValveInOff();
 void halValveOutOn();
 void halValveOutOff();
+void halValvePressureOn();
+void halValvePressureOff();
 
 void halBeepAlarmOnOff( bool on);
 

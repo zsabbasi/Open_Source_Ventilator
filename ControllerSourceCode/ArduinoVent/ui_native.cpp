@@ -240,14 +240,13 @@ static char *getPressure()
 {
   static char buf[8];
   buf[sizeof(buf) - 1] = 0;
-  float f = pressGetFloatVal();
+  float f = pressGetRawVal();
 #ifndef VENTSIM
-  dtostrf(pressGetFloatVal(), 2, 2, buf);
+  dtostrf(pressGetRawVal(), 2, 2, buf);
 #else
   snprintf(buf, sizeof(buf) - 1, "%f", f);
 #endif
-  // return buf;
-  return "1001";
+  return buf;
 }
 
 static const char *onOffTxt[] = {

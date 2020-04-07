@@ -19,7 +19,6 @@
  **************************************************************
 */
 
-
 /*
  * History:
  *
@@ -102,7 +101,6 @@ void CalculateAveragePressure()
   float rawSensorValuepA = 0.0;
   rawSensorValuepA = bmp.readPressure(); //tbreplaced
   rawSensorValue = getcmh2O(rawSensorValuepA);
-  //LOGV("BMP Reading %d", rawSensorValue);
 #endif
 
   // clamp it to the max (max value provided by the sensor)
@@ -126,6 +124,7 @@ void CalculateAveragePressure()
   accumulator += rawSensorValue;
 
   av = accumulator / AVERAGE_BIN_NUMBER;
+  //LOGV("BMP Reading %d", av);
   //   cmH2O = P_CONV * ((av / MAX_BIN_INPUT_F) - 0.08) / 0.09;
 }
 
@@ -135,7 +134,7 @@ void pressInit()
 #ifndef VENTSIM
   analogReference(DEFAULT);
 
-  if (!bmp.begin())
+  if (!bmp.begin(PRESSURE_SENSOR_ADDR))
   {
     // Serial.println(F("Could not find a valid BMP280 sensor, check wiring!"));
     // while (1);
