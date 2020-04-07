@@ -219,7 +219,6 @@ static char *getFlowRateF()
 {
   static char buf[8];
   buf[sizeof(buf) - 1] = 0;
-  //float p = getPsi(PRESSURE_SENSOR_PIN);
 
   float f = getFlowRate();
 #ifndef VENTSIM
@@ -235,7 +234,6 @@ static char *getFlowRateF()
     return "0";
   else
     return buf;
-  // return "1001";
 }
 
 static char *getPressure()
@@ -325,7 +323,16 @@ static /* const */ params_t params[] /* PROGMEM */ = {
         handleChangeLcdAutoOff, // change prop function
         {handleGetLcdAutoOff}   // propGetter
     },
-
+    {PARAM_TEXT_GET_VAL, // type
+     "Flow Rate",        // name
+     0,                  // val
+     1,                  // step
+     0,                  // min
+     1,                  // max
+     0,                  // text array for options
+     false,              // no dynamic changes
+     0,                  // change prop function
+     {getFlowRateF}},
     {
         PARAM_TEXT_GET_VAL, // type
         STR_PRESSURE,       // name

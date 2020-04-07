@@ -196,10 +196,26 @@ void halInit(uint8_t reset_val)
 
   #endif
   // ------ valves -------
-  pinMode(VALVE_IN_PIN, OUTPUT);     // set pin to input
-  digitalWrite(VALVE_IN_PIN, HIGH);  // turn on pullup resistors
+  pinMode(VALVE_IN_PIN, OUTPUT);
+  #ifdef VALVE_ACTIVE_LOW
+    digitalWrite(VALVE_IN_PIN, HIGH);
+  #else
+    digitalWrite(VALVE_IN_PIN, LOW);
+  #endif
+
   pinMode(VALVE_OUT_PIN, OUTPUT);    // set pin to input
-  digitalWrite(VALVE_OUT_PIN, HIGH); // turn on pullup resistors
+  #ifdef VALVE_ACTIVE_LOW
+    digitalWrite(VALVE_OUT_PIN, HIGH);
+  #else
+    digitalWrite(VALVE_OUT_PIN, LOW);
+  #endif
+  
+  pinMode(VALVE_PRESSURE_PIN, OUTPUT);     // set pin to input
+  #ifdef VALVE_ACTIVE_LOW
+    digitalWrite(VALVE_PRESSURE_PIN, LOW);
+  #else
+    digitalWrite(VALVE_PRESSURE_PIN, HIGH);
+  #endif
 
   tm_key_sampling = halStartTimerRef();
   initWdt(reset_val);

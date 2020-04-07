@@ -172,7 +172,11 @@ void breatherLoop()
 //get average flowrate
     accum5700+=getFlowRate();
     count5700+=1;
-    if(count5700%10==0)avg5700=accum5700/10;//will update on 10 readings
+    if(count5700%10==0){
+        avg5700=accum5700/10;//will update on 10 readings
+        accum5700 = 0;
+        count5700 = 0;
+    }
 
 
     if (b_state != B_ST_STOPPED && b_state != B_ST_STOPPING && propGetVent() == 0) {

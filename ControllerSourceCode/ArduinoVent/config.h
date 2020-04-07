@@ -147,6 +147,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 
 #define VALVE_IN_PIN            6
 #define VALVE_OUT_PIN           7
+#define VALVE_PRESSURE_PIN           23
 
 #ifndef BLUETOOTH_ENABLE
   #define MONITOR_LED_PIN LED_BUILTIN
