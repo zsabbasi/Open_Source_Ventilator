@@ -44,10 +44,10 @@ float getFlowRate()
 
 	*/
 	float flowRate = fluidRate * 60000; //m^3/s --> litre/minute
-	Serial.print("flow ");
-	Serial.print(kpa);
-	Serial.print(", ");
-	Serial.println(flowRate);
+	// Serial.print("flow ");
+	// Serial.print(kpa);
+	// Serial.print(", ");
+	// Serial.println(flowRate);
 	return kpa;
 }
 
@@ -60,7 +60,7 @@ float getPsi(int p)
 	//float kpa = (0.21 - 0.2) / 4.5 * 700.0;
 	float kpa = (5.0 * volt / VSOURCE) - 2.5;
 
-	Serial.print("volt ");
-	Serial.println(volt);
+	// Serial.print("volt ");
+	// Serial.println(volt);
 	return volt;
 }

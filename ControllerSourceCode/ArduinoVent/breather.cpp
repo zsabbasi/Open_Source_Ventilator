@@ -45,8 +45,17 @@ int iterCount = 0;
 //send valuestoserialbuff
 bool sendSerialBuff()
 {
+    monitor.write(0x23);
     for (int i = 0; i < 5; i++)
-        monitor.write(serialSendParams[i]);
+    {
+        byte *b = (byte *)&serialSendParams[i];
+        monitor.write(b[0]);
+        monitor.write(b[1]);
+        monitor.write(b[2]);
+        monitor.write(b[3]);
+        monitor.write(b[4]);
+    }
+    monitor.write(0x24);
     return true;
 }
 
