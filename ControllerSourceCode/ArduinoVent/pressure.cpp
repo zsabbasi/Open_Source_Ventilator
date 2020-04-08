@@ -97,7 +97,7 @@ void CalculateAveragePressure()
 #ifdef VENTSIM
   rawSensorValue = QRandomGenerator::global()->bounded(TEST_RAND_MIN, TEST_RAND_MAX);
 #else
-  //   rawSensorValue = analogRead(PRESSURE_SENSOR_PIN);  //Raw digital input from pressure sensor
+  //   rawSensorValue = analogRead(DIFF_PRESSURE_SENSOR_PIN);  //Raw digital input from pressure sensor
   float rawSensorValuepA = 0.0;
   rawSensorValuepA = bmp.readPressure(); //tbreplaced
   rawSensorValue = getcmh2O(rawSensorValuepA);

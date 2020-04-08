@@ -8,10 +8,12 @@
 //float vals[2];
 //std::String valstr;
 //char * vals=new char[30];
-#define PTFCC                63.639
-#define MF                      1.0
+#define PTFCC               63.639
+#define MF                  1.0
+#define VSOURCE             5.0
 
-float airDensity = 1.225; //kgm/m^3
+#define AIR_DENSITY 		1.225 //kgm/m^3
+
 float mapfloat(long x, long in_min, long in_max, long out_min, long out_max)
 {
 	return (float)(x - in_min) * (out_max - out_min) / (float)(in_max - in_min) + out_min;
@@ -19,10 +21,9 @@ float mapfloat(long x, long in_min, long in_max, long out_min, long out_max)
 
 float getFlowRate()
 {
-	float kpa = getPsi(PRESSURE_SENSOR_PIN); //for nano A9 FOR MEGA
+	float kpa = getPsi(DIFF_PRESSURE_SENSOR_PIN); //for nano A9 FOR MEGA
 	
 	float p = fabs(kpa * 1000);
-	float fluidRate;
 	/*
 	float correction = 0;
 	if (delP < 0)
@@ -33,7 +34,8 @@ float getFlowRate()
 	//
 	fluidRate = MF * PTFCC * sqrt(kpa * correction);
 	*/
-	fluidRate = (sqrt(p * 2 / airDensity)) * (M_PI * 0.00635 * 0.00635);
+	float fluidRate = sqrt(p * 2 / AIR_DENSITY) * (PI * 0.0127 * 0.0127);
+
 	/*https://sciencing.com/convert-differential-pressure-flow-7994015.html
 	fluidvelocity=sqrt(differentialpressure*2 /fluidDensity )
 	flowrate=fluidvelocity*area of pipe;(surface area pi* r * r)
@@ -55,10 +57,8 @@ float getPsi(int p)
 	int val = analogRead(p);
 	float volt = val * 0.004887586;
 
-	float psi = 0.0;
-
 	//float kpa = (0.21 - 0.2) / 4.5 * 700.0;
-	float kpa = ((volt/5)-0.04)/0.009;
+	float kpa = (5.0 * volt / VSOURCE) - 2.5;
 
 	Serial.print("volt ");
 	Serial.println(volt);

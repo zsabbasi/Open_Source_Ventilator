@@ -62,6 +62,9 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define       KEYS_JOYSTICK   1
 #define       KEYS_BUTTONS    0
 
+#define       TX_PIN          18
+#define       RX_PIN          19
+
 #if ((HW_VERSION_CSSALT_PROTO_01 == 1) && (HW_VERSION_MV_01 == 1) )
   #error "Only one HW_VERSION_xxx must be set to 1 in config.h"
 #endif
@@ -96,7 +99,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define  ALARM_SOUND_PIN        6
 //----------- PRESSURE_SENSOR ------------
 #define PREESURE_ENABLE
-#define PRESSURE_SENSOR_PIN     A7
+#define DIFF_PRESSURE_SENSOR_PIN     A7
 
 //--------- LCD Num Rows ----------
 // Default
@@ -159,8 +162,8 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define  ALARM_SOUND_PIN        22
 //----------- PRESSURE_SENSOR ------------
 #define PREESURE_ENABLE
-#define PRESSURE_SENSOR_PIN     A7
 #define PRESSURE_SENSOR_ADDR    0x76
+#define DIFF_PRESSURE_SENSOR_PIN     A7
 //--------- LCD Num Rows ----------
 // Default
 #define LCD_CFG_I2C

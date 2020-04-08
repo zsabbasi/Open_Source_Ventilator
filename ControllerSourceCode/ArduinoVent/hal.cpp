@@ -445,7 +445,7 @@ void halValvePressureOff()
 //---------- Analog pressure sensor -----------
 uint16_t halGetAnalogPressure()
 {
-  return (uint16_t)analogRead(PRESSURE_SENSOR_PIN); //Raw digital input from pressure sensor
+  return (uint16_t)analogRead(DIFF_PRESSURE_SENSOR_PIN); //Raw digital input from pressure sensor
 }
 
 //---------------- process keys ----------
