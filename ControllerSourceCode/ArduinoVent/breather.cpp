@@ -53,7 +53,6 @@ bool sendSerialBuff()
         monitor.write(b[1]);
         monitor.write(b[2]);
         monitor.write(b[3]);
-        monitor.write(b[4]);
     }
     monitor.write(0x24);
     return true;
