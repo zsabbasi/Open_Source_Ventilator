@@ -89,7 +89,12 @@ void breatherStartCycle()
     curr_progress = 0;
     tm_start = halStartTimerRef();
     b_state = B_ST_IN;
-    halValveOutOff();
+    #ifndef FLOW_TEST 
+        halValveOutOff();
+    #endif
+    #ifdef FLOW_TEST 
+        halValveOutOn();
+    #endif
     halValveInOn();
     halValvePressureOn();
     //#ifdef VENTSIM
@@ -128,7 +133,9 @@ static void fsmIn()
     if (tm_start + curr_in_milli < m)
     {
         // in valve off
-        halValveInOff();
+        #ifndef FLOW_TEST
+            halValveInOff();
+        #endif
         tm_start = halStartTimerRef();
         b_state = B_ST_WAIT_TO_OUT;
     }
@@ -162,7 +169,9 @@ static void fsmWaitToOut()
         // switch valves
         tm_start = halStartTimerRef();
         b_state = B_ST_OUT;
-        halValveOutOn();
+        #ifndef FLOW_TEST 
+            halValveOutOn();
+        #endif
     }
 }
 
@@ -174,7 +183,9 @@ static void fsmOut()
         // switch valves
         tm_start = halStartTimerRef();
         b_state = B_ST_PAUSE;
-        halValveOutOff();
+        #ifndef FLOW_TEST 
+            halValveOutOff();
+        #endif
     }
     else
     {

@@ -19,6 +19,17 @@ float mapfloat(long x, long in_min, long in_max, long out_min, long out_max)
 	return (float)(x - in_min) * (out_max - out_min) / (float)(in_max - in_min) + out_min;
 }
 
+#ifdef CAR_FLOW_SENSOR
+float getFlowRate()
+{
+	int val = analogRead(DIFF_PRESSURE_SENSOR_PIN);
+	float volt = val * 0.004887586;
+	
+	return (volt - FLOW_RELATION_INTERCEPT)/FLOW_RELATION_SLOPE ;
+}
+#endif
+
+#ifndef CAR_FLOW_SENSOR
 float getFlowRate()
 {
 	float kpa = getPsi(DIFF_PRESSURE_SENSOR_PIN); //for nano A9 FOR MEGA
@@ -64,3 +75,4 @@ float getPsi(int p)
 	// Serial.println(volt);
 	return volt;
 }
+#endif

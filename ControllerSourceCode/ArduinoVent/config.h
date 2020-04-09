@@ -48,7 +48,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #endif
 
 #define PREESURE_ENABLE
-
+//#define FLOW_TEST //Only for constant air flow test, should be disabled
 /*************************************************
  * 
  *         B O A R D   S E L E C T I O N
@@ -175,8 +175,13 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define  ALARM_SOUND_PIN        22
 //----------- PRESSURE_SENSOR ------------
 #define PREESURE_ENABLE
-#define PRESSURE_SENSOR_ADDR    0x76
+#define PRESSURE_SENSOR_ADDR         0x76
 #define DIFF_PRESSURE_SENSOR_PIN     A7
+#define CAR_FLOW_SENSOR
+#ifdef CAR_FLOW_SENSOR
+  #define FLOW_RELATION_SLOPE          29.267
+  #define FLOW_RELATION_INTERCEPT      768.78
+#endif
 //--------- LCD Num Rows ----------
 // Default
 #define LCD_CFG_I2C
@@ -246,7 +251,6 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define  DEFAULT_PAUSE           100
 #define  DEFAULT_LCD_AUTO_OFF    0
 #define  DEFAULT_BLE             0
-
 
 
 //-------------- Checks ---------------
