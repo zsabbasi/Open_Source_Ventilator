@@ -23,9 +23,9 @@ float mapfloat(long x, long in_min, long in_max, long out_min, long out_max)
 float getFlowRate()
 {
 	int val = analogRead(DIFF_PRESSURE_SENSOR_PIN);
-	float volt = val * 0.004887586;
+	float volt = val * 0.004887586 * 1000; //Calibrated to mV
 	
-	return (volt - FLOW_RELATION_INTERCEPT)/FLOW_RELATION_SLOPE ;
+	return (FLOW_RELATION_INTERCEPT-volt)/FLOW_RELATION_SLOPE ;
 }
 #endif
 
