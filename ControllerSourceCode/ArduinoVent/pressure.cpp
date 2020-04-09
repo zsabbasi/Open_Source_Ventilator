@@ -90,6 +90,13 @@ float getcmh2O(float pascals)
   return (0.1019716358 * (pascals - atm)) / 10;
 }
 
+int getRawPressure() {
+  float rawSensorValuepA = 0.0;
+  rawSensorValuepA = bmp.readPressure(); //tbreplaced
+  rawSensorValue = getcmh2O(rawSensorValuepA);
+  return rawSensorValue;
+}
+
 void CalculateAveragePressure()
 {
   //aV= 12, Pa=174.86... 0~614 --> -3.57~41.08 inches of water ---> -9.058739~1558==--->cmh2o
@@ -98,9 +105,7 @@ void CalculateAveragePressure()
   rawSensorValue = QRandomGenerator::global()->bounded(TEST_RAND_MIN, TEST_RAND_MAX);
 #else
   //   rawSensorValue = analogRead(DIFF_PRESSURE_SENSOR_PIN);  //Raw digital input from pressure sensor
-  float rawSensorValuepA = 0.0;
-  rawSensorValuepA = bmp.readPressure(); //tbreplaced
-  rawSensorValue = getcmh2O(rawSensorValuepA);
+  rawSensorValue = getRawPressure();
 #endif
 
   // clamp it to the max (max value provided by the sensor)
@@ -186,7 +191,7 @@ float pressGetFloatVal() // in InchH2O
 }
 int pressGetRawVal()
 {
-  return av;
+  return getRawPressure();
 }
 
 //-----------------------------------------------------------------
