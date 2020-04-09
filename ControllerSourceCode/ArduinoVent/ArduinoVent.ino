@@ -41,13 +41,21 @@ void setup()
   resetFlagsInit();
   halInit(resetFlags);
   ventSetup();
+#ifdef LOOP_MONITOR_PIN
+  pinMode(LOOP_MONITOR_PIN, OUTPUT);
+#endif
 }
 
-void loop()
-{
+void loop() {
+  
+#ifdef LOOP_MONITOR_PIN
+  digitalWrite(LOOP_MONITOR_PIN, HIGH); // we set the pin to measure the time that the loop takes to be processed
+#endif
 
   ventLoop();
-  // sendToMonitor(packets,length) -->expected type string data along its length
-  //Serial.print("KPA :  ");
-  //Serial.println(getPsi(A9));
+
+#ifdef LOOP_MONITOR_PIN
+  digitalWrite(LOOP_MONITOR_PIN, LOW);
+#endif
+
 }

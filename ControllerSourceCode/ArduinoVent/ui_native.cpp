@@ -78,46 +78,38 @@ static const char *st_txt[3] = {
     (const char *)STR_RUN,
     (const char *)STR_ERR};
 
-typedef enum
-{
-  PARAM_INT = 1,
-  PARAM_TXT_OPTIONS,
-  PARAM_TEXT_GET_VAL,
+typedef enum {
+    PARAM_INT = 1,
+    PARAM_CHOICES,
+    PARAM_TEXT_GETTER,
 
   PARAM_END
 
 } p_type_t;
 
-typedef void (*propchancefunc_t)(int);
+typedef void (*propchangefunc_t)(int);
 typedef int (*propgetfunc_t)();
-typedef char *(*valgetfunc_t)();
+typedef char * (*txtGetterfunc_t)();
 
-typedef struct params_st
-{
-  p_type_t type;
-  const char *name;
-  int val;
-  int step;
-  int min;
-  int max;
-  const char **options;
-  bool quickUpdate;
-  propchancefunc_t handler;
-  union {
-    propgetfunc_t propGetter;
-    valgetfunc_t valGetter;
-  } getter;
+
+typedef struct params_st {
+    p_type_t        type;
+    const char *    name;
+    int             val;
+    int             step;
+    int             min;
+    int             max;
+    const char **   options;
+    bool            quickUpdate;
+    propchangefunc_t handler;
+    union {
+      propgetfunc_t   propGetter;
+      txtGetterfunc_t txtGetter;  // valid for PARAM_TEXT_GETTER. Value is update periodicly on screen
+    } getter;
 
 } params_t;
 
-typedef struct display_vals_st
-{
-  const char *name;
-  bool update;
-  valgetfunc_t valGetter;
-} display_vals_t;
-
-static CUiNative *uiNative;
+static CUiNative * uiNative;
 
 void uiNativeInit()
 {
@@ -259,43 +251,41 @@ static const char *yesNoTxt[] = {
     STR_YES,
 };
 
-static /* const */ params_t params[] /* PROGMEM */ = {
-    {
-        PARAM_TXT_OPTIONS, // type
-        STR_VENTILATOR,    // name
-        0,                 // val
-        1,                 // step
-        0,                 // min
-        1,                 // max
-        onOffTxt,          // text array for options
-        false,             // no dynamic changes
-        handleChangeVent,  // change prop function
-        {handleGetVent},   // propGetter
-    },
-    {
-        PARAM_INT,       // type
-        STR_BPM,         // name
-        10,              // val
-        5,               // step
-        10,              // min
-        30,              // max
-        0,               // text array for options
-        true,            // no dynamic changes
-        handleChangeBps, // change prop function
-        {handleGetBps}   // propGetter
+static /* const */ params_t params[] /* PROGMEM */ =  {
+    { PARAM_CHOICES,        // type
+      STR_VENTILATOR,           // name
+      0,                        // val
+      1,                        // step
+      0,                        // min
+      1,                        // max
+      onOffTxt ,                // text array for options
+      false,                    // no dynamic changes
+      handleChangeVent,         // change prop function
+      { handleGetVent },        // propGetter
     },
 
-    {
-        PARAM_TXT_OPTIONS,     // type
-        STR_DUTY_CYCLE,        // name
-        0,                     // val
-        1,                     // step
-        0,                     // min
-        3,                     // max
-        propDutyCycleTxt,      // text array for options
-        true,                  // no dynamic changes
-        handleChangeDutyCycle, // change prop function
-        {handleGetDutyCycle}   // propGetter
+    { PARAM_INT,                // type
+      STR_BPM,                  // name
+      10,                       // val
+      5,                        // step
+      10,                       // min
+      30,                       // max
+      0,                        // text array for options
+      true,                     // no dynamic changes
+      handleChangeBps,          // change prop function
+      { handleGetBps }          // propGetter
+    },
+
+    { PARAM_CHOICES,        // type
+      STR_DUTY_CYCLE,           // name
+      0,                        // val
+      1,                        // step
+      0,                        // min
+      PROT_DUTY_CYCLE_SIZE - 1, // max
+      propDutyCycleTxt,         // text array for options
+      true,                     // no dynamic changes
+      handleChangeDutyCycle,    // change prop function
+      { handleGetDutyCycle }    // propGetter
     },
 
     {
@@ -310,19 +300,18 @@ static /* const */ params_t params[] /* PROGMEM */ = {
         handleChangePause, // change prop function
         {handleGetPause}   // propGetter
     },
-    {
-        PARAM_TXT_OPTIONS,      // type
-        STR_LCD_AUTO_OFF,       // name
-        0,                      // val
-        1,                      // step
-        0,                      // min
-        1,                      // max
-        onOffTxt,               // text array for options
-        false,                  // no dynamic changes
-        handleChangeLcdAutoOff, // change prop function
-        {handleGetLcdAutoOff}   // propGetter
+    { PARAM_CHOICES,        // type
+      STR_LCD_AUTO_OFF,         // name
+      0,                        // val
+      1,                        // step
+      0,                        // min
+      1,                        // max
+      onOffTxt,                 // text array for options
+      false,                    // no dynamic changes
+      handleChangeLcdAutoOff,   // change prop function
+      { handleGetLcdAutoOff }   // propGetter
     },
-    {PARAM_TEXT_GET_VAL, // type
+    {PARAM_TEXT_GETTER, // type
      "Flow Rate",        // name
      0,                  // val
      1,                  // step
@@ -332,21 +321,19 @@ static /* const */ params_t params[] /* PROGMEM */ = {
      false,              // no dynamic changes
      0,                  // change prop function
      {getFlowRateF}},
-    {
-        PARAM_TEXT_GET_VAL, // type
-        STR_PRESSURE,       // name
-        0,                  // val
-        1,                  // step
-        0,                  // min
-        1,                  // max
-        0,                  // text array for options
-        false,              // no dynamic changes
-        0,                  // change prop function
-#ifdef VENTSIM
-        .getter.valGetter = &getPressure // propGetter
-#else
-        {getPressure} // propGetter
-#endif
+    {  PARAM_TEXT_GETTER,       // type
+      STR_PRESSURE,             // name
+      0,                        // val
+      1,                        // step
+      0,                        // min
+      1,                        // max
+      0,                        // text array for options
+      false,                    // no dynamic changes
+      0,  // change prop function
+      { (propgetfunc_t) getPressure } // despite this is a txtGetter (note that this is a PARAM_TEXT_GETTER)
+                                      // different compilers have particular syntax in how to set union. Casting
+                                      // with the first function prototype works for all. Hack but better than add lots of #ifdef's
+
     },
 };
 
@@ -400,14 +387,14 @@ void CUiNative::initParams()
 
 void CUiNative::fillValBuf(char *buf, int idx)
 {
-  if (params[idx].type == PARAM_INT)
-    sprintf(buf, "%5d", params[idx].val);
-  else if (params[idx].type == PARAM_TXT_OPTIONS)
-    strcpy(buf, params[idx].options[params[idx].val]);
-  else if (params[idx].type == PARAM_TEXT_GET_VAL)
-    sprintf(buf, "%s", params[idx].getter.valGetter());
-  else
-    LOG("blinker: Unexpected type");
+    if (params[idx].type == PARAM_INT)
+        sprintf(buf, "%5d", params[idx].val);
+    else if (params[idx].type == PARAM_CHOICES)
+        strcpy(buf, params[idx].options[ params[idx].val ]);
+    else if (params[idx].type == PARAM_TEXT_GETTER)
+        sprintf(buf, "%s", params[idx].getter.txtGetter());
+    else
+        LOG("blinker: Unexpected type");
 }
 
 void CUiNative::loop()
@@ -470,10 +457,11 @@ void CUiNative::refreshValue(bool force)
   char buf[(LCD_NUM_COLS - PARAM_VAL_START_COL) + 1];
   int len = LCD_NUM_COLS - PARAM_VAL_START_COL;
 
-  if (params[params_idx].quickUpdate || force)
-  {
-    params[params_idx].handler(params[params_idx].val);
-  }
+    if (params[params_idx].quickUpdate || force) {
+        if (params[params_idx].handler) {
+            params[params_idx].handler(params[params_idx].val);
+        }
+    }
 
   memset(buf, 0x20, (size_t)len); // spaces
   buf[len] = 0;                   // NULL terminate

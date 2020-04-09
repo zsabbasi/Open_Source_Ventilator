@@ -55,8 +55,10 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
  *                            
  *************************************************
  */
-#define       HW_VERSION_CSSALT_PROTO_01      0  // CSSALT Board ref 1
-#define       HW_VERSION_MV_01                1  // Marcelo's prototype (Arduino Nano)
+// Note: also add boards defined here in below's "Board check selection" just in case.
+#define       HW_VERSION_CSSALT_PROTO_01        0  // CSSALT Board ref 1 (Arduino Nano)
+#define       HW_VERSION_MV_01                  1  // Marcelo's prototype (Arduino Uno)
+#define       HW_VERSION_MV_SIMULATOR           0
 //-------------------------------------------------
 
 #define       KEYS_JOYSTICK   1
@@ -65,10 +67,21 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define       TX_PIN          18
 #define       RX_PIN          19
 
-#if ((HW_VERSION_CSSALT_PROTO_01 == 1) && (HW_VERSION_MV_01 == 1) )
-  #error "Only one HW_VERSION_xxx must be set to 1 in config.h"
+//---- Board check selection -----
+#if ( (HW_VERSION_CSSALT_PROTO_01 + \
+       HW_VERSION_MV_01 + \
+       HW_VERSION_MV_SIMULATOR \
+    ) != 1)
+  #error "At least one and only one HW_VERSION_xxx must be set to 1 in config.h"
 #endif
 
+/*
+                ***********************************************
+                *                                             *
+                *                     BOARDS                  *
+                *                                             *
+                ***********************************************
+*/
 
 #if (HW_VERSION_CSSALT_PROTO_01 == 1)
 /******************************************
@@ -87,8 +100,8 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 //------------ Output Valves -----------
 #define VALVE_ACTIVE_LOW
 
-#define VALVE_IN_PIN            A4
-#define VALVE_OUT_PIN           A5
+#define VALVE_IN_PIN            2 // D2
+#define VALVE_OUT_PIN           3 // D3
 
 #ifndef BLUETOOTH_ENABLE
   #define MONITOR_LED_PIN LED_BUILTIN
@@ -96,7 +109,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
   #define MONITOR_LED_PIN       13
 #endif
 
-#define  ALARM_SOUND_PIN        6
+#define  ALARM_SOUND_PIN        6  // D6
 //----------- PRESSURE_SENSOR ------------
 #define PREESURE_ENABLE
 #define DIFF_PRESSURE_SENSOR_PIN     A7
@@ -180,13 +193,47 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define LCD_CFG_D4              11  // Connector Pin 14 - Digital11
 #define LCD_CFG_E               12  // Connector Pin 15 - Digital12
 #define LCD_CFG_RS              13  // Connector Pin 16 - Digital13
-#endif
 
+#elif (HW_VERSION_MV_SIMULATOR == 1)
+/******************************************
+ *
+ *           S I M U L A T O R
+ *
+ *
+ ******************************************
+ */
+//------------ Input Keys ---------------
+
+#define KEY_DECREMENT_PIN       3
+#define KEY_INCREMENT_PIN       4
+#define KEY_SET_PIN             5
+
+//--------- LCD Num Rows ----------
+
+#define LCD_CFG_20_COLS  1
+#define LCD_CFG_16_COLS  0
+
+#define LCD_CFG_2_ROWS  0
+#define LCD_CFG_4_ROWS  1
+
+
+
+#endif // ----------------- END OF BOARDS DEFINITIONS ----------------------
+
+/*
+                ***********************************************
+                *                                             *
+                *                   Common                    *
+                *                                             *
+                ***********************************************
+*/
+
+#define TM_SAVE_TIMEOUT 30000 // save props to EEPROM is UI is "quiet" for longer than 30 seconds
 
 
 /*======================================
   =                                    =
-  =      Paramater default Values      =
+  =      Properties default Values     =
   =                                    =
   ======================================
 
@@ -200,6 +247,9 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define  DEFAULT_LCD_AUTO_OFF    0
 #define  DEFAULT_BLE             0
 
+
+
+//-------------- Checks ---------------
 #if (LCD_CFG_2_ROWS == 1)
   #define LCD_NUM_ROWS 2
 #elif (LCD_CFG_4_ROWS == 1)
@@ -221,5 +271,12 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #if ((LCD_CFG_20_COLS == 1) && (LCD_NUM_COLS == 1))
   #error "Only one LCD_CFG_XX_COLS must be set to 1 in config.h"
 #endif
+
+
+//#define LOOP_MONITOR_PIN 5 // D5   this is for debugging only, should be always commented out
+// Profile on April 06th: Main loop taking 180 microseconds to be processed.
+
+//
+
 
 #endif // CONFIG_H

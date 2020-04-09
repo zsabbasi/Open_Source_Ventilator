@@ -36,6 +36,7 @@ error "MPU not supported... either add support or disable watchdog."
 #endif
 
 //---------- Constants ---------
+#define EEPROM_DATA_BLOCK_ADDRESS 0
 
 static MONITOR_LET_T monitor_led_speed = MONITOR_LED_NORMAL;
 
@@ -306,18 +307,6 @@ static void alarmToggler()
   }
 }
 
-//-------- EEPROM ----------
-
-uint8_t EEPROM_read(int addr)
-{
-  return EEPROM.read(addr);
-}
-
-void EEPROM_write(uint8_t val, int addr)
-{
-  EEPROM.update(addr, val);
-}
-
 //-------- display --------
 
 static void lcdUpdate()
@@ -447,6 +436,31 @@ uint16_t halGetAnalogPressure()
 {
   return (uint16_t)analogRead(DIFF_PRESSURE_SENSOR_PIN); //Raw digital input from pressure sensor
 }
+
+//--------- Save/Restore data in non-volatil storage
+bool halSaveDataBlock(uint8_t * data, int _size)
+{
+  unsigned int i, eeprom_addr = EEPROM_DATA_BLOCK_ADDRESS;
+  LOG("halSaveDataBlock:");
+  for (i=0; i< _size; i++) {
+    //LOGV("addr = %d, d = 0x%x", eeprom_addr, *data);
+    EEPROM.update(eeprom_addr, *data);
+    eeprom_addr++, data++;
+  }
+}
+
+bool halRestoreDataBlock(uint8_t * data, int _size)
+{
+  unsigned int i, eeprom_addr = EEPROM_DATA_BLOCK_ADDRESS;
+  LOG("halRestoreDataBlock:");
+  for (i=0; i< _size; i++) {
+    *data = EEPROM.read(eeprom_addr);
+    //LOGV("addr = %d, d = 0x%x", eeprom_addr, *data);
+    eeprom_addr++, data++;
+
+  }
+}
+
 
 //---------------- process keys ----------
 #define DEBOUNCING_N 4
