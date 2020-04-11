@@ -48,6 +48,13 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #endif
 
 #define PREESURE_ENABLE
+#define PRESSURE_SENSOR_ADDR         0x76
+
+#define CAR_FLOW_SENSOR
+#ifdef CAR_FLOW_SENSOR
+  #define FLOW_RELATION_SLOPE          29.267
+  #define FLOW_RELATION_INTERCEPT      768.78
+#endif
 //#define FLOW_TEST //Only for constant air flow test, should be disabled
 /*************************************************
  * 
@@ -56,8 +63,8 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
  *************************************************
  */
 // Note: also add boards defined here in below's "Board check selection" just in case.
-#define       HW_VERSION_CSSALT_PROTO_01        0  // CSSALT Board ref 1 (Arduino Nano)
-#define       HW_VERSION_MV_01                  1  // Marcelo's prototype (Arduino Uno)
+#define       HW_VERSION_CSSALT_PROTO_01        1  // CSSALT Board ref 1 (Arduino Nano)
+#define       HW_VERSION_MV_01                  0  // Marcelo's prototype (Arduino Uno)
 #define       HW_VERSION_MV_SIMULATOR           0
 //-------------------------------------------------
 
@@ -95,13 +102,14 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 
 #define KEY_DECREMENT_PIN       A0
 #define KEY_INCREMENT_PIN       A1
-#define KEY_SET_PIN             A3
+#define KEY_SET_PIN             5
 
 //------------ Output Valves -----------
 #define VALVE_ACTIVE_LOW
 
-#define VALVE_IN_PIN            2 // D2
-#define VALVE_OUT_PIN           3 // D3
+#define VALVE_IN_PIN            6 // D2
+#define VALVE_OUT_PIN           7 // D3
+#define VALVE_PRESSURE_PIN           23
 
 #ifndef BLUETOOTH_ENABLE
   #define MONITOR_LED_PIN LED_BUILTIN
@@ -109,13 +117,14 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
   #define MONITOR_LED_PIN       13
 #endif
 
-#define  ALARM_SOUND_PIN        6  // D6
+#define  ALARM_SOUND_PIN        22  // D6
 //----------- PRESSURE_SENSOR ------------
-#define PREESURE_ENABLE
 #define DIFF_PRESSURE_SENSOR_PIN     A7
 
 //--------- LCD Num Rows ----------
 // Default
+#define LCD_CFG_I2C
+
 #define LCD_CFG_20_COLS  1
 #define LCD_CFG_16_COLS  0
 
@@ -174,14 +183,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 
 #define  ALARM_SOUND_PIN        22
 //----------- PRESSURE_SENSOR ------------
-#define PREESURE_ENABLE
-#define PRESSURE_SENSOR_ADDR         0x76
 #define DIFF_PRESSURE_SENSOR_PIN     A7
-#define CAR_FLOW_SENSOR
-#ifdef CAR_FLOW_SENSOR
-  #define FLOW_RELATION_SLOPE          29.267
-  #define FLOW_RELATION_INTERCEPT      768.78
-#endif
 //--------- LCD Num Rows ----------
 // Default
 #define LCD_CFG_I2C

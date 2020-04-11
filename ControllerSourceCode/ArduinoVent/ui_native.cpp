@@ -207,15 +207,15 @@ static int handleGetLcdAutoOff()
   return propGetLcdAutoOff();
 }
 
-static char *getFlowRateF()
+static char * getFlowRateF()
 {
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
  float f = getFlowRate();
 #ifndef VENTSIM
-    dtostrf(getFlowRate(), 2, 2, buf);
+    dtostrf(f, 5, 1, buf);
 #else
-    snprintf(buf, sizeof(buf) - 1, "%f", f);
+    snprintf(buf,1 sizeof(buf) - 1, "%f", f);
 #endif
     return buf;
 }
@@ -226,7 +226,7 @@ static char *  getPressure()
  buf[sizeof(buf) - 1] = 0;
  float f = pressGetFloatVal();
 #ifndef VENTSIM
-    dtostrf(pressGetFloatVal(), 2, 2, buf);
+    dtostrf(f, 5, 1, buf);
 #else
     snprintf(buf, sizeof(buf) - 1, "%f", f);
 #endif
