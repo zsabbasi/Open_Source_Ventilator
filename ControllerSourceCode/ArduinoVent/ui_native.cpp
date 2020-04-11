@@ -209,36 +209,28 @@ static int handleGetLcdAutoOff()
 
 static char *getFlowRateF()
 {
-  static char buf[8];
-  buf[sizeof(buf) - 1] = 0;
-
-  float f = getFlowRate();
+ static char buf[8];
+ buf[sizeof(buf) - 1] = 0;
+ float f = getFlowRate();
 #ifndef VENTSIM
-  dtostrf(getFlowRate(), 2, 2, buf);
+    dtostrf(getFlowRate(), 2, 2, buf);
 #else
-  snprintf(buf, sizeof(buf) - 1, "%f", f);
+    snprintf(buf, sizeof(buf) - 1, "%f", f);
 #endif
-  // char neg[2]="- ";
-
-  if (f < 0)
-    return strcat("-", buf);
-  if (f == 0)
-    return "0";
-  else
     return buf;
 }
 
-static char *getPressure()
+static char *  getPressure()
 {
-  static char buf[8];
-  buf[sizeof(buf) - 1] = 0;
-  float f = pressGetRawVal();
+ static char buf[8];
+ buf[sizeof(buf) - 1] = 0;
+ float f = pressGetFloatVal();
 #ifndef VENTSIM
-  dtostrf(pressGetRawVal(), 2, 2, buf);
+    dtostrf(pressGetFloatVal(), 2, 2, buf);
 #else
-  snprintf(buf, sizeof(buf) - 1, "%f", f);
+    snprintf(buf, sizeof(buf) - 1, "%f", f);
 #endif
-  return buf;
+    return buf;
 }
 
 static const char *onOffTxt[] = {
@@ -320,7 +312,7 @@ static /* const */ params_t params[] /* PROGMEM */ =  {
      0,                  // text array for options
      false,              // no dynamic changes
      0,                  // change prop function
-     {getFlowRateF}},
+     { (propgetfunc_t) getFlowRateF}},
     {  PARAM_TEXT_GETTER,       // type
       STR_PRESSURE,             // name
       0,                        // val

@@ -31,7 +31,7 @@
 
 #define MINUTE_MILLI 60000
 #define TM_WAIT_TO_OUT 50 // 50 milliseconds
-#define TM_STOPPING 4000  // 4 seconds to stop
+#define TM_STOPPING 1000  // 4 seconds to stop
 
 SoftwareSerial monitor(RX_PIN, TX_PIN);
 

@@ -90,7 +90,7 @@ float getcmh2O(float pascals)
   return (0.1019716358 * (pascals - atm)) / 10;
 }
 
-int getRawPressure() {
+float getRawPressure() {
   float rawSensorValuepA = 0.0;
   rawSensorValuepA = bmp.readPressure(); //tbreplaced
   rawSensorValue = getcmh2O(rawSensorValuepA);

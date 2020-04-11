@@ -1,6 +1,6 @@
 {
     "board": "arduino:avr:mega",
-    "port": "COM3",
+    "port": "COM4",
     "programmer": "AVR ISP",
     "sketch": "ControllerSourceCode\\ArduinoVent\\ArduinoVent.ino",
     "configuration": "cpu=atmega2560"
