@@ -78,6 +78,7 @@ void breatherStartCycle()
         halValveOutOn();
     #endif
     halValveInOn();
+    halValvePressureOn();
  /*
 
 void motorStartInspiration(int millisec);

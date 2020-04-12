@@ -81,7 +81,7 @@ void halBeepAlarmOnOff( bool on)
 //----------- Locals -------------
 
 #ifdef LCD_CFG_I2C
-LiquidCrystal_I2C lcd(0x27, 4, 4);
+LiquidCrystal_I2C lcd(0x27, LCD_NUM_COLS, LCD_NUM_ROWS);
 #else
 LiquidCrystal lcd(LCD_CFG_RS,
                   LCD_CFG_E, LCD_CFG_D4,
