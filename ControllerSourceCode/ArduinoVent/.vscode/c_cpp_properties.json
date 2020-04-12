@@ -3,6 +3,7 @@
         {
             "name": "Win32",
             "includePath": [
+                "C:\\Users\\zsabb\\OneDrive\\Documents\\Arduino\\libraries\\BMx280MI\\src",
                 "C:\\Users\\Shahab\\AppData\\Local\\Arduino15\\packages\\esp8266\\tools\\**",
                 "C:\\Users\\Shahab\\AppData\\Local\\Arduino15\\packages\\esp8266\\hardware\\esp8266\\2.6.3\\**",
                 "C:\\Program Files (x86)\\Arduino\\tools\\**",

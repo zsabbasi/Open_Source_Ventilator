@@ -66,7 +66,7 @@ end
 #define SHOW_VAL
 
 #define TM_LOG 2000
-#define P_CONV 4.01463f
+#define P_CONV 4.01463f * 2.53746f //inH2O to cmH2O
 #define MAX_BIN_INPUT   614
 #define MAX_BIN_INPUT_F 614.0
 
@@ -79,7 +79,7 @@ static uint64_t tm_press;
 
 static int32_t av;
 static uint16_t rawSensorValue;
-static float inH2O = 0.0f;
+static float cmH2O = 0.0f;
 
 #ifdef SHOW_VAL
   static uint64_t tm_log;
@@ -127,7 +127,7 @@ void CalculateAveragePressure()
   accumulator += rawSensorValue;
 
   av = accumulator/AVERAGE_BIN_NUMBER;
-  inH2O = P_CONV * ((av / MAX_BIN_INPUT_F) - 0.08) / 0.09;
+  cmH2O = (P_CONV * ((av / MAX_BIN_INPUT_F) - 0.08) / 0.09);
   
 }
 
@@ -161,10 +161,10 @@ void pressLoop()
   if (halCheckTimerExpired(tm_log, TM_LOG)) {
     LOGV("av = %d", av);
   #ifndef VENTSIM
-    dtostrf(inH2O, 8, 2, buf);
+    dtostrf(cmH2O, 8, 2, buf);
     LOGV("Pa = %s\n", buf);
   #else
-    LOGV("Pa = %f\n", inH2O);
+    LOGV("Pa = %f\n", cmH2O);
   #endif
     tm_log = halStartTimerRef();
   }
@@ -173,7 +173,7 @@ void pressLoop()
 
 float pressGetFloatVal() // in InchH2O
 {
-    return inH2O;
+    return cmH2O;
 }
 int32_t pressGetRawVal()
 {

@@ -19,7 +19,6 @@
  **************************************************************
 */
 
-#include <SoftwareSerial.h>
 #include "breather.h"
 #include "properties.h"
 #include "hal.h"
@@ -29,6 +28,7 @@
 #include "pressureD.h" //for mxp5700 differential pressure
 #include "alarm.h"
 #include "motor.h"
+#include "serialWriter.h"
 
 #ifdef STEPPER_MOTOR_STEP_PIN
   #define MOT
@@ -38,28 +38,7 @@
 #define TM_WAIT_TO_OUT 200 //200 milliseconds
 #define TM_STOPPING 4000 // 4 seconds to stop
 
-void addtoSerialBuff(float gets[5])
-{
-    for (int i = 0; i < 5; i++)
-        serialSendParams[i] = gets[i];
-}
 int iterCount = 0;
-
-//send valuestoserialbuff
-bool sendSerialBuff()
-{
-    monitor.write(0x23);
-    for (int i = 0; i < 5; i++)
-    {
-        byte *b = (byte *)&serialSendParams[i];
-        monitor.write(b[0]);
-        monitor.write(b[1]);
-        monitor.write(b[2]);
-        monitor.write(b[3]);
-    }
-    monitor.write(0x24);
-    return true;
-}
 
 static int curr_pause;
 static int curr_rate;
