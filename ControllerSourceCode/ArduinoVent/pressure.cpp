@@ -66,7 +66,7 @@ end
 #define SHOW_VAL
 
 #define TM_LOG 2000
-#define P_CONV 4.01463f * 2.53746f //inH2O to cmH2O
+#define P_CONV 10.1972f //inH2O to cmH2O
 #define MAX_BIN_INPUT   614
 #define MAX_BIN_INPUT_F 614.0
 
@@ -177,7 +177,7 @@ float pressGetFloatVal() // in InchH2O
 }
 int32_t pressGetRawVal()
 {
-    return av;
+    return rawSensorValue;
 }
 
 

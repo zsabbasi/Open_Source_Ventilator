@@ -27,7 +27,7 @@
 
 #define I2C_ADDRESS 0x76
 #define TM_LOG 2000
-#define P_CONV 4.01463f
+#define P_CONV 10.1972f
 #define MAX_BIN_INPUT   614
 #define MAX_BIN_INPUT_F 614.0
 
