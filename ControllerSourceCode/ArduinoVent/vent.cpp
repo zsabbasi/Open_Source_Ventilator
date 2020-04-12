@@ -29,19 +29,31 @@
 #include "alarm.h"
 #include "ui_native.h"
 #include "breather.h"
+#include "motor.h"
+#include "bmp280_int.h"
 
 //------------ Global -----------
- void ventLoop()
- {
-    halLoop();
-    evtDispatchAll();
-    uiNativeLoop();
-    breatherLoop();
- }
+void ventLoop()
+{
+  halLoop();
+  evtDispatchAll();
+  uiNativeLoop();
+  breatherLoop();
+   
+#ifdef STEPPER_MOTOR_STEP_PIN
+  motorLoop();
+#endif
+}
 
 void ventSetup()
 {
   alarmInit();     // must be called before uiNativeInit
   uiNativeInit();
+  
+#ifdef STEPPER_MOTOR_STEP_PIN
+  motorInit();
+#endif
+
+  bpm280Init();
 }
  
