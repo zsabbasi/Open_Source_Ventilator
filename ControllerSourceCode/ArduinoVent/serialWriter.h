@@ -1,3 +1,6 @@
+#ifndef SERIALWRITER.H
+#define SERIALWRITER.H
+
 #include <SoftwareSerial.h>
 
 SoftwareSerial monitor(RX_PIN, TX_PIN);
@@ -25,3 +28,5 @@ bool sendSerialBuff()
     monitor.write(0x24);
     return true;
 }
+
+#endif
