@@ -25,7 +25,7 @@
 #include "log.h"
 #include "hal.h"
 
-#define I2C_ADDRESS 0x77
+#define I2C_ADDRESS 0x76
 #define TM_LOG 2000
 #define P_CONV 4.01463f
 #define MAX_BIN_INPUT   614

@@ -48,7 +48,6 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #endif
 
 #define PREESURE_ENABLE
-#define PRESSURE_SENSOR_ADDR         0x76
 
 #define CAR_FLOW_SENSOR
 #ifdef CAR_FLOW_SENSOR
