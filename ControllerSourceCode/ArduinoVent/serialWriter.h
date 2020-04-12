@@ -1,5 +1,5 @@
-#ifndef SERIALWRITER.H
-#define SERIALWRITER.H
+#ifndef SERIALWRITER_H
+#define SERIALWRITER_H
 
 #include <SoftwareSerial.h>
 
@@ -29,4 +29,4 @@ bool sendSerialBuff()
     return true;
 }
 
-#endif
+#endif // SERIALWRITER_H
