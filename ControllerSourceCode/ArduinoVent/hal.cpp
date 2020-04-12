@@ -243,8 +243,10 @@ void halInit(uint8_t reset_val) {
 // ------ valves -------
   pinMode(VALVE_IN_PIN, OUTPUT);           // set pin to input
   pinMode(VALVE_OUT_PIN, OUTPUT);           // set pin to input
+  pinMode(VALVE_PRESSURE_PIN, OUTPUT);      // set pin to input
   halValveInOff();
   halValveOutOff();
+  halValvePressureOff();
 
   tm_key_sampling = halStartTimerRef();
   initWdt(reset_val);
@@ -536,7 +538,7 @@ bool keyPressed(keys_t key)
   if (key.keyCode == KEY_DECREMENT)
   {
     int value = analogRead(KEY_INCREMENT);
-    return value <= 20;
+    return value <= 60;
   }
   if (key.keyCode == KEY_INCREMENT)
   {
@@ -560,12 +562,12 @@ bool keyReleased(keys_t key)
   if (key.keyCode == KEY_DECREMENT)
   {
     int value = analogRead(KEY_INCREMENT);
-    return value >= 500;
+    return value >= 400;
   }
   if (key.keyCode == KEY_INCREMENT)
   {
     int value = analogRead(KEY_INCREMENT);
-    return value <= 550;
+    return value <= 700;
   }
   if (key.keyCode == KEY_SET)
   {
