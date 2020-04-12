@@ -212,6 +212,9 @@ static char * getFlowRateF()
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
  float f = getFlowRate();
+ if(f>150 || f<-99){
+   return 'N/A';
+ }
 #ifndef VENTSIM
     dtostrf(f, 5, 1, buf);
 #else
@@ -225,6 +228,9 @@ static char *  getPressure()
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
  float f = pressGetFloatVal();
+  if(f>150 || f<-99){
+   return 'N/A';
+ }
 #ifndef VENTSIM
     dtostrf(f, 5, 1, buf);
 #else
@@ -576,9 +582,9 @@ void CUiNative::checkFuncHold()
 
 propagate_t CUiNative::onEvent(event_t *event)
 {
-  //char b[64];
-  //sprintf(b, "onEvent: type = %d, key = %d\n", event->type, event->iParam);
-  //LOG( (char *) b);
+  // char b[64];
+  // sprintf(b, "onEvent: type = %d, key = %d\n", event->type, event->iParam);
+  // LOG( (char *) b);
 
   if (event->type == EVT_ALARM_DISPLAY_ON)
   {

@@ -52,8 +52,8 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 
 #define CAR_FLOW_SENSOR
 #ifdef CAR_FLOW_SENSOR
-  #define FLOW_RELATION_SLOPE          29.267
-  #define FLOW_RELATION_INTERCEPT      768.78
+  #define FLOW_RELATION_SLOPE          26.315
+  #define FLOW_RELATION_INTERCEPT      685.67
 #endif
 //#define FLOW_TEST //Only for constant air flow test, should be disabled
 /*************************************************
