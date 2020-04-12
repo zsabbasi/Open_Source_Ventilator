@@ -78,7 +78,7 @@ static uint8_t ready_cnt = 0;
 static uint64_t tm_press;
 
 static int32_t av;
-static uint16_t rawSensorValue;
+static int16_t rawSensorValue;
 static float cmH2O = 0.0f;
 
 #ifdef SHOW_VAL
@@ -109,10 +109,11 @@ void CalculateAveragePressure()
   #warning "No pressure sensor defined in config.h"
 #endif
   
-
   // clamp it to the max (max value provided by the sensor)
-  if (rawSensorValue >= MAX_BIN_INPUT)
+  if (rawSensorValue >= MAX_BIN_INPUT) {
+      LOGV("Pressure too high %d", rawSensorValue);
       rawSensorValue = MAX_BIN_INPUT - 1;
+  }
 
   if (ready_cnt >= AVERAGE_BIN_NUMBER)  {
     accumulator -= tap_array[tail_idx++] ;
@@ -127,7 +128,7 @@ void CalculateAveragePressure()
   accumulator += rawSensorValue;
 
   av = accumulator/AVERAGE_BIN_NUMBER;
-  cmH2O = (P_CONV * ((av / MAX_BIN_INPUT_F) - 0.08) / 0.09);
+  cmH2O = av; //(P_CONV * ((av / MAX_BIN_INPUT_F) - 0.08) / 0.09);
   
 }
 

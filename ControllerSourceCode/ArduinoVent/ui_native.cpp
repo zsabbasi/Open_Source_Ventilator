@@ -200,7 +200,8 @@ static char * getFlowRateF()
  buf[sizeof(buf) - 1] = 0;
  float f = getFlowRate();
  if(f>150 || f<-99){
-   return 'N/A';
+   char naText = '-';
+   return &naText;
  }
 #ifndef VENTSIM
     dtostrf(f, 5, 1, buf);
@@ -216,7 +217,8 @@ static char *  getPressure()
  buf[sizeof(buf) - 1] = 0;
  float f = pressGetFloatVal();
   if(f>150 || f<-99){
-   return 'N/A';
+   char naText = '-';
+   return &naText;
  }
 #ifndef VENTSIM
     dtostrf(f, 5, 1, buf);

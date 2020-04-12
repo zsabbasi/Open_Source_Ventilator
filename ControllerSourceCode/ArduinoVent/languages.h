@@ -45,7 +45,7 @@
 #define     STR_PAUSE                   "Pause (ms)"        // max 10
 #define     STR_LCD_AUTO_OFF            "LCD auto-off"      // max 10
 #define     STR_PRESSURE                "Pressure"          // max 10
-#define     STR_FLOW                    "Flow"          // max 10
+#define     STR_FLOW                    "Flow"              // max 10
 
 #define     STR_LOW_PRESSURE            "LOW AIRWAY PRES!"      // max 16
 #define     STR_HIGH_PRESSURE           "OVER PRES ALARM!"      // max 16

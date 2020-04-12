@@ -156,13 +156,13 @@ static void fsmIn()
   //--------- we check for low pressure at 50% or grater
   // low pressure hardcode to 3 InchH2O -> 90 int
   if (curr_progress < 50) {
-      if (pressGetRawVal() < 90) {
+      if (pressGetRawVal() < 7.6) {
         CEvent::post(EVT_ALARM, ALARM_IDX_LOW_PRESSURE);
       }
   }
   
   //------ check for high pressure hardcode to 35 InchH2O -> 531 int
-  if (pressGetRawVal() > 513) {
+  if (pressGetRawVal() > 89) {
     CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_PRESSURE);
   }
 #endif
