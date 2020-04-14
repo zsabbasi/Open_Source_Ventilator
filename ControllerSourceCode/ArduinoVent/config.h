@@ -60,8 +60,8 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
  *************************************************
  */
 // Note: also add boards defined here in below's "Board check selection" just in case.
-#define       HW_VERSION_CSSALT_PROTO_01        1  // CSSALT Board ref 1 (Arduino Nano)
-#define       HW_VERSION_CSSALT_PROTO_02        0  // CSSALT Board ref 1 (Arduino Nano) 20x4 LCD and Motor
+#define       HW_VERSION_CSSALT_PROTO_01        0  // CSSALT Board ref 1 (Arduino Nano)
+#define       HW_VERSION_CSSALT_PROTO_02        1  // CSSALT Board ref 1 (Arduino Nano) 20x4 LCD and Motor
 #define       HW_VERSION_MV_01                  0  // Marcelo's prototype (Arduino Uno)
 #define       HW_VERSION_MV_SIMULATOR           0
 //-------------------------------------------------
@@ -169,6 +169,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 
 #define VALVE_IN_PIN            2 // D2
 #define VALVE_OUT_PIN           3 // D3
+#define VALVE_PRESSURE_PIN           23
 
 #ifndef BLUETOOTH_ENABLE
   #define MONITOR_LED_PIN LED_BUILTIN
@@ -206,8 +207,8 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define LCD_CFG_RS              13  // Connector Pin 16 - Digital13
 
 // stepper motor
-#define   STEPPER_MOTOR_STEP_PIN   4 // D4. also, if this is undefined (commented) the motor function if disabled
-#define   STEPPER_MOTOR_DIR_PIN    5 // D5
+//#define   STEPPER_MOTOR_STEP_PIN   4 // D4. also, if this is undefined (commented) the motor function if disabled
+//#define   STEPPER_MOTOR_DIR_PIN    5 // D5
 //#define   STEPPER_MOTOR_EOC_PIN    // TBD... Enf-Of-Course sensor (switch) active low.
 #define   STEPPER_MOTOR_INVERT_DIR  // uncoment/comment this line according to your mechanic orientation
 

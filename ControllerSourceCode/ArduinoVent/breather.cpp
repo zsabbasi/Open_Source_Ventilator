@@ -80,6 +80,7 @@ void breatherStartCycle()
     b_state = B_ST_IN;
     halValveOutOff();
     halValveInOn();
+    halValvePressureOn();
     fast_calib = false;
 
 #if 0
@@ -188,6 +189,7 @@ static void fsmStopping()
         b_state = B_ST_STOPPED;
         halValveOutOff();
         halValveInOff();
+        halValvePressureOff();
     }
 }
 

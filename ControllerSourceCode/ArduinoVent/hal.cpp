@@ -24,6 +24,7 @@
 #include "event.h"
 #include "properties.h"
 #include "pressure.h"
+#include "pressureD.h"
 
 #ifndef LCD_CFG_I2C
   #include "LcdMv.h"
@@ -514,7 +515,8 @@ uint16_t halGetAnalogPressure()
 //---------- Analog pressure sensor -----------
 uint16_t halGetAnalogFlow()
 {
-  return (uint16_t) analogRead(FLOW_SENSOR_PIN);  //Raw digital input from pressure sensor
+  //return (uint16_t) analogRead(FLOW_SENSOR_PIN);  //Raw digital input from pressure sensor
+  return getFlowRate();
 }
 
 

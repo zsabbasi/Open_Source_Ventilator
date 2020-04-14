@@ -66,8 +66,8 @@ void breatherStartCycle()
     b_state = B_ST_IN;
     halValveOutOff();
     halValveInOn();
-
-  motorStartInspiration(curr_in_milli);
+    halValvePressureOn();
+    motorStartInspiration(curr_in_milli);
   
 
 #if 0
@@ -149,6 +149,7 @@ static void fsmStopping()
         b_state = B_ST_STOPPED;
         halValveOutOff();
         halValveInOff();
+        halValvePressureOff();
     }
 }
 
