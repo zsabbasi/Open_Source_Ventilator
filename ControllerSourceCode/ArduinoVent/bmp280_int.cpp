@@ -19,18 +19,21 @@
  *
  **************************************************************
 */
+#include "config.h"
+#if (USE_BMP280_PRESSURE_SENSOR == 1)
+
 #include "bmp280_int.h"
 #include <Wire.h>
-#include <sSense-BMx280I2C.h>  // GLG -- for BMP280
+#include <sSense-BMx280I2C_mv.h>  // GLG -- for BMP280
 #include "log.h"
 #include "hal.h"
 
-#define I2C_ADDRESS 0x76
+#define I2C_ADDRESS 0x77
 #define TM_LOG 2000
-#define P_CONV 10.1972f
+#define P_CONV 4.01463f
 #define MAX_BIN_INPUT   614
 #define MAX_BIN_INPUT_F 614.0
-#define P_CMh20COnv 98.0665
+
 #define TM_LOG 2000
 
 static uint64_t logTimer;
@@ -49,17 +52,11 @@ static BMx280I2C::Settings settings(
 static  float temp, hum, fpressure;   // ambient pressure
 static  float pressurecmH2O; 
 static  int mmH2O;
-float atm = 101325;
-
+  
 static BMx280I2C ssenseBMx280(settings);
 
-int32_t getcmh2O(float pascals)
-{
-  return (0.1019716358 * (pascals - atm)) / 10;
-}
-
-static int32_t measure_pressure(){
-  int32_t av;
+static uint32_t measure_pressure(){
+  uint32_t av;
   
   unsigned long testpressure;   
   BME280::PresUnit presUnit(BME280::PresUnit_Pa);
@@ -73,12 +70,12 @@ static int32_t measure_pressure(){
 #endif
 
   // I guess this scale is wrong... but fpressure here should be in -3.57~41.08 bananas range
-  //fpressure /= 0.98; // fix this
+  fpressure /= 0.98; // fix this
   
   // for now we match analog values 0~614 (for -3.57~41.08 Bananas)
   // Therefore, we calculate to analog... YES THIS IS STUPID... we fix that later to avoid float math
   
-  av =  getcmh2O(fpressure); //(((fpressure * .09) / P_CONV) + 0.08 ) * MAX_BIN_INPUT_F;
+  av = (((fpressure * .09) / P_CONV) + 0.08 ) * MAX_BIN_INPUT_F;
 
   if (halCheckTimerExpired(logTimer, TM_LOG)) {
     char buf[8];
@@ -140,3 +137,6 @@ uint32_t bpm280GetPressure() // for now we match analog values 0~614 (for -3.57~
 {
   return measure_pressure(); // will clean this later on
 }
+
+//----------------------------------------------------
+#endif // USE_BMP280_PRESSURE_SENSOR

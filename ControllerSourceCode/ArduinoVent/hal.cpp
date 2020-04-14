@@ -489,8 +489,15 @@ bool halMotorEOC()
 //---------- Analog pressure sensor -----------
 uint16_t halGetAnalogPressure()
 {
-  return (uint16_t) analogRead(DIFF_PRESSURE_SENSOR_PIN);  //Raw digital input from pressure sensor
+  return (uint16_t) analogRead(PRESSURE_SENSOR_PIN);  //Raw digital input from pressure sensor
 }
+
+//---------- Analog pressure sensor -----------
+uint16_t halGetAnalogFlow()
+{
+  return (uint16_t) analogRead(FLOW_SENSOR_PIN);  //Raw digital input from pressure sensor
+}
+
 
 //--------- Save/Restore data in non-volatil storage
 bool halSaveDataBlock(uint8_t * data, int _size)
@@ -581,52 +588,44 @@ bool keyReleased(keys_t key)
 
 static void processKeys()
 {
-  int i;
-  if (halCheckTimerExpired(tm_key_sampling, TM_KEY_SAMPLING))
-  {
-    tm_key_sampling = halStartTimerRef();
-    for (i = 0; i < 3; i++)
-    {
-      if (keys[i].state == 0)
-      {
-        // ------- key is release state -------
-        if (keyPressed(keys[i]))
-        { // if key is pressed
-          keys[i].count++;
-          if (keys[i].count >= DEBOUNCING_N)
-          {
-            //declare key pressed
-            keys[i].count = 0;
-            keys[i].state = 1;
-            CEvent::post(EVT_KEY_PRESS, keys[i].keyCode);
+    int i;
+    if ( halCheckTimerExpired(tm_key_sampling, TM_KEY_SAMPLING)) {
+        tm_key_sampling = halStartTimerRef();
+      for (i=0; i<3; i++) {
+        if (keys[i].state == 0) {
+          // ------- key is release state -------
+          if (keyPressed(keys[i])) { // if key is pressed
+            keys[i].count++;
+            if (keys[i].count >= DEBOUNCING_N) {
+              //declare key pressed
+              keys[i].count = 0;
+              keys[i].state = 1;
+              CEvent::post(EVT_KEY_PRESS, keys[i].keyCode);
+            }
+
+          }
+          else {
+              keys[i].count = 0;
           }
         }
-        else
-        {
-          keys[i].count = 0;
-        }
-      }
-      else
-      {
-        // ------- key is pressed state -------
-        if (keyReleased(keys[i]))
-        { // if key is release
-          keys[i].count++;
-          if (keys[i].count >= DEBOUNCING_N)
-          {
-            //declare key released
-            keys[i].count = 0;
-            keys[i].state = 0;
-            CEvent::post(EVT_KEY_RELEASE, keys[i].keyCode);
+        else {
+          // ------- key is pressed state -------
+           if (keyReleased(keys[i])) { // if key is release
+            keys[i].count++;
+            if (keys[i].count >= DEBOUNCING_N) {
+              //declare key released
+              keys[i].count = 0;
+              keys[i].state = 0;
+              CEvent::post(EVT_KEY_RELEASE, keys[i].keyCode);
+            }
           }
-        }
-        else
-        {
-          keys[i].count = 0;
+          else {
+              keys[i].count = 0;
+          }       
         }
       }
+        
     }
-  }
 }
 
 void halLoop()
@@ -653,3 +652,7 @@ void halWriteSerial(char * s)
   Serial.print(s);
 #endif
 }
+
+
+
+ 

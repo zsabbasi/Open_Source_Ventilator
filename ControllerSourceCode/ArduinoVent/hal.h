@@ -86,12 +86,11 @@ void halValveInOn();
 void halValveInOff();
 void halValveOutOn();
 void halValveOutOff();
-void halValvePressureOn();
-void halValvePressureOff();
 
 void halBeepAlarmOnOff( bool on);
 
 uint16_t halGetAnalogPressure();
+uint16_t halGetAnalogFlow();
 
 //uint8_t EEPROM_read(int addr);
 //void EEPROM_write(uint8_t val, int addr);

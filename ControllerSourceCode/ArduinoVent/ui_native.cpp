@@ -24,7 +24,6 @@
 #include "hal.h"
 #include "properties.h"
 #include "pressure.h"
-#include "pressureD.h"
 #include "breather.h"
 #include <stdio.h>
 #include <string.h>
@@ -114,6 +113,10 @@ typedef struct params_st {
 
 static CUiNative * uiNative;
 
+// -------------  prototypes --------------
+static void handleChangeCalibration(int val);
+
+
 void uiNativeInit()
 {
   uiNative = new CUiNative();
@@ -144,6 +147,8 @@ void CUiNative::updateStatus(bool blank)
   halLcdWrite(0, LCD_STATUS_ROW, buf);
 }
 
+//----------- Setters ----------
+
 static void handleChangeVent(int val) {
     propSetVent(val);
     if (val) {
@@ -168,11 +173,25 @@ static void handleChangePause(int val) {
      propSetPause(val);
 }
 
-static void handleChangeLcdAutoOff(int val) {
-     propSetLcdAutoOff(val);
+static void handleChangeLowPressure(int val) {
+    propSetLowPressure(val);
 }
 
-//static void handleSave(int val){}
+static void handleChangeHighPressure(int val) {
+    propSetHighPressure(val);
+}
+
+
+static void handleChangeLowTidal(int val) {
+    propSetLowTidal(val);
+}
+
+static void handleChangeHighTidal(int val) {
+    propSetHighTidal(val);
+}
+
+
+//-------- getters ------
 
 static int handleGetVent() {
     return propGetVent();
@@ -190,23 +209,45 @@ static int handleGetPause() {
      return propGetPause();
 }
 
-static int handleGetLcdAutoOff() {
-     return propGetLcdAutoOff();
+static int handleGetLowPressure() {
+    return propGetLowPressure();
 }
 
-static char * getFlowRateF()
+static int handleGetHighPressure() {
+    return propGetHighPressure();
+}
+
+static int handleGetLowTidal() {
+    return propGetLowTidal();
+}
+
+static int handleGetHighTidal() {
+    return propGetHighTidal();
+}
+
+
+static char *  getFlow ()
 {
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
- float f = getFlowRate();
- if(f>150 || f<-99){
-   char naText = '-';
-   return &naText;
- }
+ float f = pressGetFloatVal(FLOW);
 #ifndef VENTSIM
-    dtostrf(f, 5, 1, buf);
+    dtostrf(pressGetFloatVal(FLOW), 2, 2, buf);
 #else
-    snprintf(buf,1 sizeof(buf) - 1, "%f", f);
+    snprintf(buf, sizeof(buf) - 1, "%f", f);
+#endif
+    return buf;
+}
+
+static char *  getTidalVolume()
+{
+ static char buf[8];
+ buf[sizeof(buf) - 1] = 0;
+ float f = pressGetFloatVal(PRESSURE);
+#ifndef VENTSIM
+    dtostrf(pressGetFloatVal(PRESSURE), 2, 2, buf);
+#else
+    snprintf(buf, sizeof(buf) - 1, "%f", f);
 #endif
     return buf;
 }
@@ -215,13 +256,9 @@ static char *  getPressure()
 {
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
- float f = pressGetFloatVal();
-  if(f>150 || f<-99){
-   char naText = '-';
-   return &naText;
- }
+ float f = pressGetFloatVal(PRESSURE);
 #ifndef VENTSIM
-    dtostrf(f, 5, 1, buf);
+    dtostrf(pressGetFloatVal(PRESSURE), 2, 2, buf);
 #else
     snprintf(buf, sizeof(buf) - 1, "%f", f);
 #endif
@@ -286,31 +323,7 @@ static /* const */ params_t params[] /* PROGMEM */ =  {
       handleChangePause,        // change prop function
       { handleGetPause }        // propGetter
     },
-    { PARAM_CHOICES,        // type
-      STR_LCD_AUTO_OFF,         // name
-      0,                        // val
-      1,                        // step
-      0,                        // min
-      1,                        // max
-      onOffTxt,                 // text array for options
-      false,                    // no dynamic changes
-      handleChangeLcdAutoOff,   // change prop function
-      { handleGetLcdAutoOff }   // propGetter
-    },
-    {  PARAM_TEXT_GETTER,       // type
-      STR_FLOW,             // name
-      0,                        // val
-      1,                        // step
-      0,                        // min
-      1,                        // max
-      0,                        // text array for options
-      false,                    // no dynamic changes
-      0,  // change prop function
-      { (propgetfunc_t) getFlowRateF } // despite this is a txtGetter (note that this is a PARAM_TEXT_GETTER)
-                                      // different compilers have particular syntax in how to set union. Casting
-                                      // with the first function prototype works for all. Hack but better than add lots of #ifdef's
 
-    },
     {  PARAM_TEXT_GETTER,       // type
       STR_PRESSURE,             // name
       0,                        // val
@@ -325,9 +338,118 @@ static /* const */ params_t params[] /* PROGMEM */ =  {
                                       // with the first function prototype works for all. Hack but better than add lots of #ifdef's
 
     },
+
+    {  PARAM_TEXT_GETTER,       // type
+      STR_FLOW,                 // name
+      0,                        // val
+      1,                        // step
+      0,                        // min
+      1,                        // max
+      0,                        // text array for options
+      false,                    // no dynamic changes
+      0,  // change prop function
+      { (propgetfunc_t) getFlow } // despite this is a txtGetter (note that this is a PARAM_TEXT_GETTER)
+                                      // different compilers have particular syntax in how to set union. Casting
+                                      // with the first function prototype works for all. Hack but better than add lots of #ifdef's
+
+    },
+
+    {  PARAM_TEXT_GETTER,       // type
+      STR_TIDAL,                // name
+      0,                        // val
+      1,                        // step
+      0,                        // min
+      1,                        // max
+      0,                        // text array for options
+      false,                    // no dynamic changes
+      0,  // change prop function
+      { (propgetfunc_t) getTidalVolume } // despite this is a txtGetter (note that this is a PARAM_TEXT_GETTER)
+                                      // different compilers have particular syntax in how to set union. Casting
+                                      // with the first function prototype works for all. Hack but better than add lots of #ifdef's
+
+    },
+
+    { PARAM_INT,                // type
+      STR_LOW_PRESSURE,         // name
+      4,                        // val
+      1,                        // step
+      1,                        // min
+      15,                       // max
+      0,                        // text array for options
+      true,                     // no dynamic changes
+      handleChangeLowPressure,  // change prop function
+      { handleGetLowPressure }  // propGetter
+    },
+
+    { PARAM_INT,                // type
+      STR_HIGH_PRESSURE,        // name
+      30,                       // val
+      2,                        // step
+      10,                       // min
+      40,                       // max
+      0,                        // text array for options
+      true,                     // no dynamic changes
+      handleChangeHighPressure,  // change prop function
+      { handleGetHighPressure }  // propGetter
+    },
+
+    { PARAM_INT,                // type
+      STR_LOW_TIDAL,            // name
+      100,                       // val
+      100,                        // step
+      0,                       // min
+      1400,                       // max
+      0,                        // text array for options
+      true,                     // no dynamic changes
+      handleChangeLowTidal,  // change prop function
+      { handleGetLowTidal }  // propGetter
+    },
+
+    { PARAM_INT,                // type
+      STR_HIGH_TIDAL,            // name
+      1000,                       // val
+      100,                        // step
+      0,                       // min
+      1400,                       // max
+      0,                        // text array for options
+      true,                     // no dynamic changes
+      handleChangeHighTidal,  // change prop function
+      { handleGetHighTidal }  // propGetter
+    },
+
+    // *******************************************
+    // NOTE: THIS MUST BE THE VERY LAST PARAMETER
+    // *******************************************
+    { PARAM_CHOICES,            // type
+      STR_CALIB_PRESSURES,      // name
+      0,                        // val
+      1,                        // step
+      0,                        // min
+      1,                        // max
+      onOffTxt ,                // text array for options
+      false,                    // no dynamic changes
+      handleChangeCalibration,  // change prop function
+      0,        // propGetter
+    },
+
+    /*
+     * #define     STR_LOW_PRESSURE            "Low  Press"
+    #define     STR_HIGH_PRESSURE           "High Press"
+    #define     STR_LOW_TIDAL               "Low  Tidal"
+    #define     STR_HIGH_TIDAL              "High Tidal"
+    #define     STR_CALIB_PRESSURES         "Cal. Press"
+
+     * */
+
 };
 
 #define NUM_PARAMS (sizeof(params)/sizeof(params_t))
+
+static void handleChangeCalibration(int val) {
+  breatherRequestFastCalibration();
+  params[NUM_PARAMS - 1].val = 0; // reset val
+}
+
 
 //------------ Global -----------
 CUiNative::CUiNative()
