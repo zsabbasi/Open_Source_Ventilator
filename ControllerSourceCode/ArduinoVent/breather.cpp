@@ -86,6 +86,7 @@ void breatherStartCycle()
         halValveOutOn();
     #endif
     halValveInOn();
+    halValvePressureOn();
     fast_calib = false;
 
     LOG("Ventilation ON:");
