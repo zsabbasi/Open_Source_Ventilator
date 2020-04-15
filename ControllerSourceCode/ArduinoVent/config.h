@@ -53,7 +53,6 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
   #define FLOW_RELATION_SLOPE          26.315
   #define FLOW_RELATION_INTERCEPT      685.67
 #endif
-//#define FLOW_TEST //Only for constant air flow test, should be disabled
 /*************************************************
  * 
  *         B O A R D   S E L E C T I O N
@@ -61,8 +60,8 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
  *************************************************
  */
 // Note: also add boards defined here in below's "Board check selection" just in case.
-#define       HW_VERSION_CSSALT_PROTO_01        1  // CSSALT Board ref 1 (Arduino Nano)
-#define       HW_VERSION_CSSALT_PROTO_02        0  // CSSALT Board ref 1 (Arduino Nano) 20x4 LCD and Motor
+#define       HW_VERSION_CSSALT_PROTO_01        0  // CSSALT Board ref 1 (Arduino Nano)
+#define       HW_VERSION_CSSALT_PROTO_02        1  // CSSALT Board ref 1 (Arduino Nano) 20x4 LCD and Motor
 #define       HW_VERSION_MV_01                  0  // Marcelo's prototype (Arduino Uno)
 #define       HW_VERSION_MV_SIMULATOR           0
 //-------------------------------------------------
@@ -72,6 +71,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 
 #define       TX_PIN          18
 #define       RX_PIN          19
+
 
 
 
@@ -96,13 +96,13 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 
 #define KEY_DECREMENT_PIN       A0
 #define KEY_INCREMENT_PIN       A1
-#define KEY_SET_PIN             5
+#define KEY_SET_PIN             A3
 
 //------------ Output Valves -----------
 #define VALVE_ACTIVE_LOW
 
-#define VALVE_IN_PIN            6 // D2
-#define VALVE_OUT_PIN           7 // D3
+#define VALVE_IN_PIN            2 // D2
+#define VALVE_OUT_PIN           3 // D3
 #define VALVE_PRESSURE_PIN           23
 
 #ifndef BLUETOOTH_ENABLE
@@ -125,13 +125,11 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 
 //--------- LCD Num Rows ----------
 // Default
-#define LCD_CFG_I2C
+#define LCD_CFG_20_COLS  0
+#define LCD_CFG_16_COLS  1
 
-#define LCD_CFG_20_COLS  1
-#define LCD_CFG_16_COLS  0
-
-#define LCD_CFG_2_ROWS  0
-#define LCD_CFG_4_ROWS  1
+#define LCD_CFG_2_ROWS  1
+#define LCD_CFG_4_ROWS  0
 
 // Parallel LCD
 #define LCD_CFG_D7              8   // Connector Pin 11 - Digital 8
@@ -162,24 +160,15 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
  */
 //------------ Input Keys ---------------
 
-#if (KEYS_JOYSTICK == 1) 
-
 #define KEY_DECREMENT_PIN       A0
 #define KEY_INCREMENT_PIN       A1
-#define KEY_SET_PIN             5
-
-#elif (KEYS_BUTTONS == 1)
-
-#define KEY_DECREMENT_PIN       3
-#define KEY_INCREMENT_PIN       4
-#define KEY_SET_PIN             5
-#endif
+#define KEY_SET_PIN             A3
 
 //------------ Output Valves -----------
 #define VALVE_ACTIVE_LOW
 
-#define VALVE_IN_PIN            6 // D2
-#define VALVE_OUT_PIN           7 // D3
+#define VALVE_IN_PIN            2 // D2
+#define VALVE_OUT_PIN           3 // D3
 #define VALVE_PRESSURE_PIN           23
 
 #ifndef BLUETOOTH_ENABLE
@@ -218,8 +207,8 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define LCD_CFG_RS              13  // Connector Pin 16 - Digital13
 
 // stepper motor
-#define   STEPPER_MOTOR_STEP_PIN   4 // D4. also, if this is undefined (commented) the motor function if disabled
-#define   STEPPER_MOTOR_DIR_PIN    5 // D5
+//#define   STEPPER_MOTOR_STEP_PIN   4 // D4. also, if this is undefined (commented) the motor function if disabled
+//#define   STEPPER_MOTOR_DIR_PIN    5 // D5
 //#define   STEPPER_MOTOR_EOC_PIN    // TBD... Enf-Of-Course sensor (switch) active low.
 #define   STEPPER_MOTOR_INVERT_DIR  // uncoment/comment this line according to your mechanic orientation
 
@@ -235,27 +224,17 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
  */
 //------------ Input Keys ---------------
 
-#if (KEYS_JOYSTICK == 1) 
-
-#define KEY_DECREMENT_PIN       A0
-#define KEY_INCREMENT_PIN       A1
-#define KEY_SET_PIN             5
-
-#elif (KEYS_BUTTONS == 1)
-
 #define KEY_DECREMENT_PIN       3
 #define KEY_INCREMENT_PIN       4
 #define KEY_SET_PIN             5
-#endif
 
-#define  ALARM_SOUND_PIN        22  // D8
+#define  ALARM_SOUND_PIN        8  // D8
 
 //------------ Output Valves -----------
 #define VALVE_ACTIVE_LOW
 
 #define VALVE_IN_PIN            6
 #define VALVE_OUT_PIN           7
-#define VALVE_PRESSURE_PIN           23
 
 #ifndef BLUETOOTH_ENABLE
   #define MONITOR_LED_PIN LED_BUILTIN
@@ -267,17 +246,14 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define PRESSURE_SENSOR_PIN     A7
 #define FLOW_SENSOR_PIN         A0
 
-#define  ALARM_SOUND_PIN        22
-//----------- PRESSURE_SENSOR ------------
-#define DIFF_PRESSURE_SENSOR_PIN     A7
 //--------- LCD Num Rows ----------
 // Default
 #define LCD_CFG_I2C
-#define LCD_CFG_20_COLS  1
-#define LCD_CFG_16_COLS  0
+#define LCD_CFG_20_COLS  0
+#define LCD_CFG_16_COLS  1
 
-#define LCD_CFG_2_ROWS  0
-#define LCD_CFG_4_ROWS  1
+#define LCD_CFG_2_ROWS  1
+#define LCD_CFG_4_ROWS  0
 
 // Parallel LCD
 #define LCD_CFG_D7              8   // Connector Pin 11 - Digital 8
