@@ -72,6 +72,8 @@ static void motorInit();
 
 void halBeepAlarmOnOff( bool on)
 {
+#ifndef  NO_ALARM_SOUND
+
   if (on == true) {
     alarm = true;
     alarm_phase = 0;
@@ -86,6 +88,8 @@ void halBeepAlarmOnOff( bool on)
     noTone(ALARM_SOUND_PIN);
     // turn tone off
   }
+
+#endif
 }
 
 //----------- Locals -------------
@@ -252,10 +256,10 @@ void halInit(uint8_t reset_val) {
 // ------ valves -------
   pinMode(VALVE_IN_PIN, OUTPUT);           // set pin to input
   pinMode(VALVE_OUT_PIN, OUTPUT);           // set pin to input
-  pinMode(VALVE_PRESSURE_PIN, OUTPUT);      // set pin to input
-  halValveInOff();
-  halValveOutOff();
-  halValvePressureOff();
+  pinMode(VALVE_PRESSURE_PIN, OUTPUT);      // set pin to input  
+  halValveInClose();
+  halValveOutOpen();
+  halValvePressureOpen();
 
   tm_key_sampling = halStartTimerRef();
   initWdt(reset_val);
@@ -415,39 +419,39 @@ void halLcdWrite(int col, int row, const char * txt)
 }
 
 //---------- valves Real
-void halValveInOn()
+void halValveInOpen()
 {
-#ifdef VALVE_ACTIVE_LOW
+#ifdef VALVE_IN_ACTIVE_LOW
     digitalWrite(VALVE_IN_PIN, LOW);
 #else
     digitalWrite(VALVE_IN_PIN, HIGH);
 #endif
 }
-void halValveInOff()
+void halValveInClose()
 {
-#ifdef VALVE_ACTIVE_LOW
+#ifdef VALVE_IN_ACTIVE_LOW
     digitalWrite(VALVE_IN_PIN, HIGH);
 #else
     digitalWrite(VALVE_IN_PIN, LOW);
 #endif
 }
-void halValveOutOn()
+void halValveOutOpen()
 {
-#ifdef VALVE_ACTIVE_LOW
+#ifdef VALVE_OUT_ACTIVE_LOW
     digitalWrite(VALVE_OUT_PIN, LOW);
 #else
     digitalWrite(VALVE_OUT_PIN, HIGH);
 #endif
 }
-void halValveOutOff()
+void halValveOutClose()
 {
-#ifdef VALVE_ACTIVE_LOW
+#ifdef VALVE_OUT_ACTIVE_LOW
     digitalWrite(VALVE_OUT_PIN, HIGH);
 #else
     digitalWrite(VALVE_OUT_PIN, LOW);
 #endif
 }
-void halValvePressureOn()
+void halValvePressureOpen()
 {
 #ifdef VALVE_ACTIVE_LOW
   digitalWrite(VALVE_PRESSURE_PIN, LOW);
@@ -455,7 +459,7 @@ void halValvePressureOn()
   digitalWrite(VALVE_PRESSURE_PIN, HIGH);
 #endif
 }
-void halValvePressureOff()
+void halValvePressureClose()
 {
 #ifdef VALVE_ACTIVE_LOW
   digitalWrite(VALVE_PRESSURE_PIN, HIGH);
@@ -508,7 +512,7 @@ bool halMotorEOC()
 //---------- Analog pressure sensor -----------
 uint16_t halGetAnalogPressure()
 {
-  return (uint16_t) analogRead(DIFF_PRESSURE_SENSOR_PIN);  //Raw digital input from pressure sensor
+  return (uint16_t) analogRead(PRESSURE_SENSOR_PIN);  //Raw digital input from pressure sensor
 }
 
 //---------- Analog pressure sensor -----------
@@ -607,52 +611,44 @@ bool keyReleased(keys_t key)
 
 static void processKeys()
 {
-  int i;
-  if (halCheckTimerExpired(tm_key_sampling, TM_KEY_SAMPLING))
-  {
-    tm_key_sampling = halStartTimerRef();
-    for (i = 0; i < 3; i++)
-    {
-      if (keys[i].state == 0)
-      {
-        // ------- key is release state -------
-        if (keyPressed(keys[i]))
-        { // if key is pressed
-          keys[i].count++;
-          if (keys[i].count >= DEBOUNCING_N)
-          {
-            //declare key pressed
-            keys[i].count = 0;
-            keys[i].state = 1;
-            CEvent::post(EVT_KEY_PRESS, keys[i].keyCode);
+    int i;
+    if ( halCheckTimerExpired(tm_key_sampling, TM_KEY_SAMPLING)) {
+        tm_key_sampling = halStartTimerRef();
+      for (i=0; i<3; i++) {
+        if (keys[i].state == 0) {
+          // ------- key is release state -------
+          if (keyPressed(keys[i])) { // if key is pressed
+            keys[i].count++;
+            if (keys[i].count >= DEBOUNCING_N) {
+              //declare key pressed
+              keys[i].count = 0;
+              keys[i].state = 1;
+              CEvent::post(EVT_KEY_PRESS, keys[i].keyCode);
+            }
+
+          }
+          else {
+              keys[i].count = 0;
           }
         }
-        else
-        {
-          keys[i].count = 0;
-        }
-      }
-      else
-      {
-        // ------- key is pressed state -------
-        if (keyReleased(keys[i]))
-        { // if key is release
-          keys[i].count++;
-          if (keys[i].count >= DEBOUNCING_N)
-          {
-            //declare key released
-            keys[i].count = 0;
-            keys[i].state = 0;
-            CEvent::post(EVT_KEY_RELEASE, keys[i].keyCode);
+        else {
+          // ------- key is pressed state -------
+           if (keyReleased(keys[i])) { // if key is release
+            keys[i].count++;
+            if (keys[i].count >= DEBOUNCING_N) {
+              //declare key released
+              keys[i].count = 0;
+              keys[i].state = 0;
+              CEvent::post(EVT_KEY_RELEASE, keys[i].keyCode);
+            }
           }
-        }
-        else
-        {
-          keys[i].count = 0;
+          else {
+              keys[i].count = 0;
+          }       
         }
       }
+        
     }
-  }
 }
 
 void halLoop()
@@ -684,3 +680,7 @@ void halWriteSerial(char * s)
   Serial.print(s);
 #endif
 }
+
+
+
+ 

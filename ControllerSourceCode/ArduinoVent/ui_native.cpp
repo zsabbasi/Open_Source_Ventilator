@@ -23,8 +23,7 @@
 #include "ui_native.h"
 #include "hal.h"
 #include "properties.h"
-#include "pressure.h"
-#include "pressureD.h"
+#include "bmp280_int.h"
 #include "breather.h"
 #include <stdio.h>
 #include <string.h>
@@ -241,9 +240,9 @@ static char *  getFlow ()
 {
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
- float f = pressGetFloatVal(FLOW);
+ float f = getCmH2OGauge(); // pressGetFloatVal(FLOW);
 #ifndef VENTSIM
-    dtostrf(pressGetFloatVal(FLOW), 2, 2, buf);
+    dtostrf(f, 2, 2, buf);
 #else
     snprintf(buf, sizeof(buf) - 1, "%f", f);
 #endif
@@ -254,28 +253,11 @@ static char *  getTidalVolume()
 {
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
- float f = pressGetFloatVal(PRESSURE);
+ float f = 0.0; // pressGetFloatVal(PRESSURE);
 #ifndef VENTSIM
-    dtostrf(pressGetFloatVal(PRESSURE), 2, 2, buf);
+    dtostrf(f, 2, 2, buf);
 #else
     snprintf(buf, sizeof(buf) - 1, "%f", f);
-#endif
-    return buf;
-}
-
-static char * getFlowRateF()
-{
- static char buf[8];
- buf[sizeof(buf) - 1] = 0;
- float f = getFlowRate();
- if(f>150 || f<-99){
-   char naText = '-';
-   return &naText;
- }
-#ifndef VENTSIM
-    dtostrf(f, 5, 1, buf);
-#else
-    snprintf(buf,1 sizeof(buf) - 1, "%f", f);
 #endif
     return buf;
 }
@@ -284,9 +266,9 @@ static char *  getPressure()
 {
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
- float f = pressGetFloatVal(PRESSURE);
+ float f = getCmH2OGauge(); //pressGetFloatVal(PRESSURE);
 #ifndef VENTSIM
-    dtostrf(pressGetFloatVal(PRESSURE), 2, 2, buf);
+    dtostrf(f, 2, 2, buf);
 #else
     snprintf(buf, sizeof(buf) - 1, "%f", f);
 #endif
@@ -370,20 +352,7 @@ static const char * yesNoTxt[] = {
                                       // with the first function prototype works for all. Hack but better than add lots of #ifdef's
 
     },
-    {  PARAM_TEXT_GETTER,       // type
-      STR_FLOW,             // name
-      0,                        // val
-      1,                        // step
-      0,                        // min
-      1,                        // max
-      0,                        // text array for options
-      false,                    // no dynamic changes
-      0,  // change prop function
-      { (propgetfunc_t) getFlowRateF } // despite this is a txtGetter (note that this is a PARAM_TEXT_GETTER)
-                                      // different compilers have particular syntax in how to set union. Casting
-                                      // with the first function prototype works for all. Hack but better than add lots of #ifdef's
 
-    },
     {  PARAM_TEXT_GETTER,       // type
       STR_FLOW,                 // name
       0,                        // val

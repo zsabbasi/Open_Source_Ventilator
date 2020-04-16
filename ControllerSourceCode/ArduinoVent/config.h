@@ -31,6 +31,10 @@
 #define LANGUAGE_EN_US      1           // English
 #define LANGUAGE_PT_BR      0           // Portuguese
 
+//#define NO_ALARM_SOUND // development only... must be commente out for production
+#ifdef NO_ALARM_SOUND
+  #warning "Alarm Sound is MUTED"
+#endif
 
 /*======================================
   =                                    =
@@ -92,6 +96,8 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
  *                  
  ******************************************
  */
+
+
 //------------ Input Keys ---------------
 
 #define KEY_DECREMENT_PIN       A0
@@ -99,7 +105,8 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define KEY_SET_PIN             A3
 
 //------------ Output Valves -----------
-#define VALVE_ACTIVE_LOW
+#define VALVE_IN_ACTIVE_LOW
+//#define VALVE_OUT_ACTIVE_LOW
 
 #define VALVE_IN_PIN            2 // D2
 #define VALVE_OUT_PIN           3 // D3
@@ -116,8 +123,11 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 //----------- PRESSURE_SENSOR ------------
 #define PRESSURE_SENSOR_PIN     A7
 
-#define USE_Mpxv7002DP_PRESSURE_SENSOR  1
-#define USE_BMP280_PRESSURE_SENSOR      0
+#define USE_Mpxv7002DP_PRESSURE_SENSOR  0
+#define USE_BMP280_PRESSURE_SENSOR      1
+
+// BMP sensor connetcted to   SDA -> A4
+//                            SCL -> A5
 
 //---------- FLOW SENSOR ----------
 #define USE_Mpxv7002DP_FLOW_SENSOR      1
@@ -125,11 +135,11 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 
 //--------- LCD Num Rows ----------
 // Default
-#define LCD_CFG_20_COLS  0
-#define LCD_CFG_16_COLS  1
+#define LCD_CFG_20_COLS  1
+#define LCD_CFG_16_COLS  0
 
-#define LCD_CFG_2_ROWS  1
-#define LCD_CFG_4_ROWS  0
+#define LCD_CFG_2_ROWS  0
+#define LCD_CFG_4_ROWS  1
 
 // Parallel LCD
 #define LCD_CFG_D7              8   // Connector Pin 11 - Digital 8
@@ -165,7 +175,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define KEY_SET_PIN             A3
 
 //------------ Output Valves -----------
-#define VALVE_ACTIVE_LOW
+#define VALVE_IN_ACTIVE_LOW
 
 #define VALVE_IN_PIN            2 // D2
 #define VALVE_OUT_PIN           3 // D3
@@ -182,8 +192,11 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 //----------- PRESSURE_SENSOR ------------
 #define PRESSURE_SENSOR_PIN     A7
 
-#define USE_Mpxv7002DP_PRESSURE_SENSOR  1
-#define USE_BMP280_PRESSURE_SENSOR      0
+#define USE_Mpxv7002DP_PRESSURE_SENSOR  0
+#define USE_BMP280_PRESSURE_SENSOR      1
+
+// BMP sensor connetcted to   SDA -> A4
+//                            SCL -> A5
 
 //---------- FLOW SENSOR ----------
 #define USE_Mpxv7002DP_FLOW_SENSOR      1
@@ -207,8 +220,8 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define LCD_CFG_RS              13  // Connector Pin 16 - Digital13
 
 // stepper motor
-//#define   STEPPER_MOTOR_STEP_PIN   4 // D4. also, if this is undefined (commented) the motor function if disabled
-//#define   STEPPER_MOTOR_DIR_PIN    5 // D5
+#define   STEPPER_MOTOR_STEP_PIN   4 // D4. also, if this is undefined (commented) the motor function if disabled
+#define   STEPPER_MOTOR_DIR_PIN    5 // D5
 //#define   STEPPER_MOTOR_EOC_PIN    // TBD... Enf-Of-Course sensor (switch) active low.
 #define   STEPPER_MOTOR_INVERT_DIR  // uncoment/comment this line according to your mechanic orientation
 
@@ -231,7 +244,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define  ALARM_SOUND_PIN        8  // D8
 
 //------------ Output Valves -----------
-#define VALVE_ACTIVE_LOW
+#define VALVE_IN_ACTIVE_LOW
 
 #define VALVE_IN_PIN            6
 #define VALVE_OUT_PIN           7

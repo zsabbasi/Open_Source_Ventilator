@@ -82,12 +82,12 @@ void halLcdSetCursor(int col, int row);
 void halLcdWrite(const char * txt);
 void halLcdWrite(int col, int row, const char * txt);
 
-void halValveInOn();
-void halValveInOff();
-void halValveOutOn();
-void halValveOutOff();
-void halValvePressureOn();
-void halValvePressureOff();
+void halValveInOpen();
+void halValveInClose();
+void halValveOutOpen();
+void halValveOutClose();
+void halValvePressureOpen();
+void halValvePressureClose();
 
 void halBeepAlarmOnOff( bool on);
 

@@ -24,11 +24,11 @@
 
 #include "breather.h"
 #include "properties.h"
+#include "bmp280_int.h"
 #include "hal.h"
 #include "log.h"
-#include "pressure.h"
+//#include "pressure.h"
 #include "event.h"
-#include "pressureD.h" //for mxp5700 differential pressure
 #include "alarm.h"
 
 #define MINUTE_MILLI 60000
@@ -45,6 +45,8 @@ static int curr_out_milli;
 static int curr_total_cycle_milli;
 static int curr_progress;
 static uint64_t tm_start;
+static int16_t highPressure;
+static int16_t lowPressure;
 
 static bool fast_calib;
 
@@ -74,26 +76,27 @@ void breatherStartCycle()
     curr_pause = propGetPause();
     curr_rate = propGetDutyCycle();
     int in_out_t = curr_total_cycle_milli - (curr_rate + TM_WAIT_TO_OUT);
-    curr_out_milli = (in_out_t / 2) / rate[curr_rate];
-    curr_in_milli = in_out_t - curr_out_milli;
+    curr_in_milli = (in_out_t/2) / rate[curr_rate];
+    curr_out_milli = in_out_t - curr_in_milli;
     curr_progress = 0;
     tm_start = halStartTimerRef();
     b_state = B_ST_IN;
-    #ifndef FLOW_TEST 
-        halValveOutOff();
-    #endif
-    #ifdef FLOW_TEST 
-        halValveOutOn();
-    #endif
-    halValveInOn();
-    halValvePressureOn();
+    halValveOutClose();
+    halValveInOpen();
     fast_calib = false;
+  
+    highPressure = propGetHighPressure();
+    lowPressure = propGetLowPressure();
 
-    LOG("Ventilation ON:");
-    LOGV(" curr_total_cycle_milli = %d", curr_total_cycle_milli);
-    LOGV(" curr_pause = %d", curr_pause);
-    LOGV(" curr_in_milli = %d", curr_in_milli);
-    LOGV(" curr_out_milli = %d", curr_out_milli);
+
+#if 0
+  LOG("Ventilation ON:");
+  LOGV(" curr_total_cycle_milli = %d", curr_total_cycle_milli);
+  LOGV(" curr_pause = %d", curr_pause);
+  LOGV(" curr_in_milli = %d", curr_in_milli);
+  LOGV(" curr_out_milli = %d", curr_out_milli);
+#endif
+
 }
 
 B_STATE_t breatherGetState()
@@ -103,40 +106,40 @@ B_STATE_t breatherGetState()
 
 static void fsmStopped()
 {
-    if (propGetVent())
-    {
-        breatherStartCycle();
-    }
+  if (propGetVent() ) {
+      //breatherStartCycle();
+      // lets do a fast calibration 
+      fast_calib = false;
+      tm_start = halStartTimerRef();
+      b_state = B_ST_INITIAL_FAST_CALIB;
+      halValveOutOpen();
+
+  }
 }
 
 static void fsmIn()
 {
     uint64_t m = halStartTimerRef();
-    if (tm_start + curr_in_milli < m)
-    {
+    if (tm_start + curr_in_milli < m) {
         // in valve off
-        #ifndef FLOW_TEST
-            halValveInOff();
-        #endif
+        halValveInClose();
         tm_start = halStartTimerRef();
         b_state = B_ST_WAIT_TO_OUT;
     }
-    else
-    {
-        curr_progress = ((m - tm_start) * 100) / curr_in_milli;
+    else {
+        curr_progress = ((m - tm_start) * 100)/ curr_in_milli;
         //curr_progress = 100 - (100 * tm_start + curr_in_milli) / m;
 
         //--------- we check for low pressure at 50% or grater
         // low pressure hardcode to 3 InchH2O -> 90 int
         if (tm_start + curr_in_milli/2 < m) {
-            if (pressGetRawVal(PRESSURE) < 90) {
+            if (getCmH2OGauge() < lowPressure) {
               CEvent::post(EVT_ALARM, ALARM_IDX_LOW_PRESSURE);
             }
         }
     }
-
     //------ check for high pressure hardcode to 35 InchH2O -> 531 int
-    if (pressGetRawVal(PRESSURE) > 513) {
+    if (getCmH2OGauge() > highPressure) {
       CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_PRESSURE);
     }
 
@@ -144,12 +147,11 @@ static void fsmIn()
 
 static void fsmWaitToOut()
 {
-    if (halCheckTimerExpired(tm_start, TM_WAIT_TO_OUT))
-    {
+    if (halCheckTimerExpired(tm_start, TM_WAIT_TO_OUT)) {
         // switch valves
         tm_start = halStartTimerRef();
         b_state = B_ST_OUT;
-        halValveOutOn();
+        halValveOutOpen();
     }
 }
 
@@ -169,9 +171,7 @@ static void fsmOut()
         // switch valves
         tm_start = halStartTimerRef();
         b_state = B_ST_PAUSE;
-        #ifndef FLOW_TEST 
-            halValveOutOff();
-        #endif
+        halValveOutClose();
     }
     else {
         curr_progress = 100 - ((m - tm_start) * 100)/ curr_out_milli;
@@ -186,8 +186,22 @@ static void fsmFastCalib()
         // switch valves
         tm_start = halStartTimerRef();
         b_state = B_ST_PAUSE;
-        halValveOutOff();
+        bmp280SetReference();
+        halValveOutClose();
         CEvent::post(EVT_ALARM, ALARM_IDX_FAST_CALIB_DONE);
+    }
+
+}
+
+static void fsmInitialFastCalib()
+{
+    uint64_t m = halStartTimerRef();
+    if (halCheckTimerExpired(tm_start, TM_FAST_CALIBRATION)) {
+        // switch valves
+        tm_start = halStartTimerRef();
+        b_state = B_ST_PAUSE;
+        bmp280SetReference();
+        halValveOutClose();
     }
 
 }
@@ -195,59 +209,32 @@ static void fsmFastCalib()
 
 static void fsmStopping()
 {
-    if (halCheckTimerExpired(tm_start, TM_STOPPING))
-    {
+    if (halCheckTimerExpired(tm_start, TM_STOPPING)) {
         // switch valves
         tm_start = halStartTimerRef();
         b_state = B_ST_STOPPED;
-        halValveOutOff();
-        halValveInOff();
-        halValvePressureOff();
+        halValveOutOpen();
+        halValveInClose();
+        halValvePressureClose();
     }
 }
 
 static void fsmPause()
 {
-    if (halCheckTimerExpired(tm_start, curr_pause))
-    {
+    if (halCheckTimerExpired(tm_start, curr_pause)) {
         breatherStartCycle();
     }
 }
 
 void breatherLoop()
 {
-    //get average flowrate
-    accum5700 += getFlowRate();
-    count5700 += 1;
-    if (count5700 % 10 == 0)
-    {
-        avg5700 = accum5700 / 10; //will update on 10 readings
-        accum5700 = 0;
-        count5700 = 0;
-    }
-
-    //for serial
-    iterCount += 1;
-    if (iterCount % 10 == 0)
-    {
-        float gets[5] = {
-            propGetDutyCycle(),
-            propGetBps(),
-            pressGetRawVal(),
-            getFlowRate(),
-            (float)propGetVent()};
-        // getPsi();mx5700 not necessary differential pressure
-        addtoSerialBuff(gets);
-        sendSerialBuff(); //send to serial the float array
-    }
-    if (b_state != B_ST_STOPPED && b_state != B_ST_STOPPING && propGetVent() == 0)
-    {
+    if (b_state != B_ST_STOPPED && b_state != B_ST_STOPPING && propGetVent() == 0) {
         // force stop
         tm_start = halStartTimerRef();
         b_state = B_ST_STOPPING;
         curr_progress = 0;
-        halValveInOff();
-        halValveOutOn();
+        halValveInClose();
+        halValveOutOpen();
     }
 
     if (b_state == B_ST_STOPPED)
@@ -258,14 +245,15 @@ void breatherLoop()
         fsmWaitToOut();
     else if (b_state == B_ST_OUT)
         fsmOut();
-    else if (b_state == B_ST_FAST_CALIB)
+    else if (b_state == B_ST_INITIAL_FAST_CALIB) 
+        fsmInitialFastCalib(); 
+    else if (b_state == B_ST_FAST_CALIB) 
         fsmFastCalib();
     else if (b_state == B_ST_PAUSE)
         fsmPause();
     else if (b_state == B_ST_STOPPING)
         fsmStopping();
-    else
-    {
+    else {
         LOG("breatherLoop: unexpected state");
     }
 }

@@ -19,24 +19,29 @@
  *
  **************************************************************
 */
-#include "config.h"
+
+#include "hal.h"
+#include "alarm.h"
 #if (USE_BMP280_PRESSURE_SENSOR == 1)
 
 #include "bmp280_int.h"
 #include <Wire.h>
-#include <sSense-BMx280I2C_mv.h>  // GLG -- for BMP280
+#include "sSense-BMx280I2C_mv.h"  // GLG -- for BMP280
 #include "log.h"
-#include "hal.h"
 
-#define I2C_ADDRESS 0x76
-#define TM_LOG 2000
-#define P_CONV 10.1972f
-#define MAX_BIN_INPUT   614
-#define MAX_BIN_INPUT_F 614.0
-#define P_CMh20COnv 98.0665
-#define TM_LOG 2000
+//#define SHOW_PREESURE_LOGS
 
-static uint64_t logTimer;
+#define I2C_ADDRESS 0x77 // SDO pin must be left high. Otherwise, if SDO grounded, address is 0x76
+
+#define TM_LOG 2000
+#define TM_INIT_RETRY 200
+#define TM_READ_MIN_PERIOD  50 // max rate to query BMP is 50ms (read takes about 2 ms)... 
+                               // we will create a state machine to read in multiple calls and no blocks whatsoever.
+
+
+#ifdef SHOW_PREESURE_LOGS
+  static uint64_t logTimer;
+#endif
 
 static BMx280I2C::Settings settings(
    BME280::OSR_X1,
@@ -49,99 +54,100 @@ static BMx280I2C::Settings settings(
    I2C_ADDRESS // I2C address. I2C specific -- this is for the Adafruit with other lines not connected
 );
 
-static  float temp, hum, fpressure;   // ambient pressure
-static  float pressurecmH2O; 
-static  int mmH2O;
-float atm = 101325;
+static uint64_t tm;
+static uint8_t state; // 0~3 starting... 4 is error... >=10 is OK
 
+static float fPressurePa;
+static float fReferencePa;
+static float gaugeCmH2O;
+
+#ifdef SHOW_PREESURE_LOGS
+    char buf[24];
+#endif
+  
 static BMx280I2C ssenseBMx280(settings);
 
-int32_t getcmh2O(float pascals)
-{
-  return (0.1019716358 * (pascals - atm)) / 10;
+static void checkInit() {
+  if (state >= 4) return; // error or OK
+  
+  if ( halCheckTimerExpired(tm, TM_INIT_RETRY) ) {
+    if (ssenseBMx280.begin()) {
+      LOGV("Model 0x%x", ssenseBMx280.chipModel() );
+
+      // prerform a first read for reference
+      ssenseBMx280.readPressure(fPressurePa); // TODO: protect this method in the library
+      bmp280SetReference();
+      
+      tm = halStartTimerRef();
+      state = 10; // init is completed
+      return;
+    }
+    state++;
+    if (state == 4) {
+      CEvent::post(EVT_ALARM, ALARM_IDX_BAD_PRESS_SENSOR);
+    }
+    tm = halStartTimerRef();
+  }
 }
 
-static int32_t measure_pressure(){
-  int32_t av;
+float bpm280GetPressure() {
   
-  unsigned long testpressure;   
-  BME280::PresUnit presUnit(BME280::PresUnit_Pa);
-  BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);   
+  checkInit();
+  if (state < 4) return BMP_ST__INITIALIZING; // error or OK 
+  if (state == 4) return BMP_ST__NOT_FOUND; // error or OK
 
-#if 1
-  // For now without the sensor the following line will block forever
-  ssenseBMx280.read(fpressure, temp, hum, tempUnit, presUnit);
-#else
-  fpressure = 20.0; // fake a value to test with no sensor
-#endif
+  if ( halCheckTimerExpired(tm, TM_READ_MIN_PERIOD) ) {
+    tm = halStartTimerRef();
+    ssenseBMx280.readPressure(fPressurePa);
+    gaugeCmH2O = (fPressurePa - fReferencePa) * 0.0101972;
 
-  // I guess this scale is wrong... but fpressure here should be in -3.57~41.08 bananas range
-  //fpressure /= 0.98; // fix this
-  
-  // for now we match analog values 0~614 (for -3.57~41.08 Bananas)
-  // Therefore, we calculate to analog... YES THIS IS STUPID... we fix that later to avoid float math
-  
-  av =  getcmh2O(fpressure); //(((fpressure * .09) / P_CONV) + 0.08 ) * MAX_BIN_INPUT_F;
+  }
 
+#ifdef SHOW_PREESURE_LOGS
   if (halCheckTimerExpired(logTimer, TM_LOG)) {
-    char buf[8];
-    buf[sizeof(buf) - 1] = 0;
-    dtostrf(fpressure, 2, 2, buf);
-    LOGV("fpressure from sensor = %s", buf); // this is how to log variable format like printf
 
+    dtostrf(fPressurePa, 2, 2, buf);
+    buf[sizeof(buf) - 1] = 0;
+    LOGV("fPressurePa = %s", buf); // this is how to log variable format like printf
+
+    dtostrf(fReferencePa, 2, 2, buf);
+    buf[sizeof(buf) - 1] = 0;
+    LOGV("fReferencePa = %s", buf); // this is how to log variable format like printf
+
+    float f = getCmH2OGauge();
+    dtostrf(f, 2, 2, buf);
+    buf[sizeof(buf) - 1] = 0;
+    LOGV("Gauge = %s\n", buf); // this is how to log variable format like printf
+    
     logTimer = halStartTimerRef();
   }
-  return av;
+#endif
+
+  return fPressurePa;
   
+}
+
+void bmp280SetReference()
+{
+  LOG("Set Press Ref.");
+  fReferencePa = fPressurePa;
+}
+
+float getCmH2OGauge()
+{
+  return gaugeCmH2O;
 }
 
 void bpm280Init()
 {
+  Wire.begin();
 
- //----------------GLG set up the BMP280:
-  BME280::PresUnit presUnit(BME280::PresUnit_Pa);
-  BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);
-  LOG("\n\nAbout to read BMx280   ");
+  tm = halStartTimerRef(); 
+  checkInit();
 
-   while(!ssenseBMx280.begin())
-  {
-    // Insert any code you wish to alert you that
-    // the device could not be found. 
-#ifdef BMP280DEBUG
-    LOG("BMx280 not found.");
-    delay(250);
-#endif
-
-  }
-
-  switch(ssenseBMx280.chipModel())
-  {
-     case BME280::ChipModel_BME280:
-       // insert any desired cocde to notify that BME280 with humidity detected.
-#ifdef BMP280DEBUG
-       LOG("BME280(hum) " );
-#endif
-       
-       break;
-     case BME280::ChipModel_BMP280:
-       // insert any desired code to notify that BMP280 (no humidity) detected
-#ifdef  BMP280DEBUG
-       LOG("BMP280(nohum) " );
-#endif       
-       break;
-     default:
-       // insert any code to notify that the unknown sensor found.
-       LOG(" Error \n" );
-        
-       break;
-  }
-
+#ifdef SHOW_PREESURE_LOGS
   logTimer = halStartTimerRef();
-}
-
-uint32_t bpm280GetPressure() // for now we match analog values 0~614 (for -3.57~41.08 Bananas)
-{
-  return measure_pressure(); // will clean this later on
+#endif
 }
 
 //----------------------------------------------------
