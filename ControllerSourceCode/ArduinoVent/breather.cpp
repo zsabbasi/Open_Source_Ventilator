@@ -30,6 +30,7 @@
 //#include "pressure.h"
 #include "event.h"
 #include "alarm.h"
+#include "serialWriter.h"
 
 #define MINUTE_MILLI 60000
 #define TM_WAIT_TO_OUT 200 //200 milliseconds
@@ -47,6 +48,7 @@ static int curr_progress;
 static uint64_t tm_start;
 static int16_t highPressure;
 static int16_t lowPressure;
+static int iterCount = 0;
 
 static bool fast_calib;
 
@@ -228,6 +230,21 @@ static void fsmPause()
 
 void breatherLoop()
 {
+    iterCount += 1;
+    if (iterCount % 10 == 0)
+    {
+        float gets[5] = {
+            propGetDutyCycle(),
+            propGetBps(),
+            pressGetRawVal(),
+            getFlowRate(),
+            (float)propGetVent()};
+        // getPsi();mx5700 not necessary differential pressure
+        addtoSerialBuff(gets);
+        sendSerialBuff(); //send to serial the float array
+        iterCount = 0;
+    }
+
     if (b_state != B_ST_STOPPED && b_state != B_ST_STOPPING && propGetVent() == 0) {
         // force stop
         tm_start = halStartTimerRef();
