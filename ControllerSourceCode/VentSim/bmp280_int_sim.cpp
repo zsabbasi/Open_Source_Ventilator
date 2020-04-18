@@ -1,5 +1,4 @@
-#ifndef LOG_H
-#define LOG_H
+
 
 /*************************************************************
  * Open Ventilator
@@ -21,23 +20,31 @@
  **************************************************************
 */
 #include "config.h"
+#include <stdint.h>
 
-void logv(const char *fmt, ...);
+//--------- special return values for bpm280GetPressure and getCmH2OGauge
+#define BMP_ST__INITIALIZING   -100.0f  // initializing
+#define BMP_ST__NOT_FOUND      -200.0f  // could not get initialized
+#define BMP_ST__READ_ERROR     -300.0f  // was initialized but fail to read at some point
 
-#ifndef VENTSIM
-  #include "hardwareSerial.h"
-  #include <avr/pgmspace.h>
-  #ifdef DEBUG_SERIAL_LOGS
-    #define LOG(x) Serial.println(F(x))
-    //#define LOGV(x)  Serial.println(x)
-    #define LOGV(...) logv(__VA_ARGS__)
-  #else
-    #define LOG(x) /* dummy */
-    #define LOGV(...) /* dummy */
-  #endif
-#else
-  void LOG(const char * txt); // goes to flash memory in Arduino
-  #define LOGV(...) logv(__VA_ARGS__)      // char * comes from a variable
-#endif
 
-#endif // LOG_H
+void  bpm280Init()
+{
+
+}
+
+float bpm280GetPressure() // absolute pressure in Pa, ex:  101982.90
+{
+    return 101982.90;
+}
+
+void  bmp280SetReference()
+{
+
+}
+float getCmH2OGauge()
+{
+    return 10.0;
+}
+
+
