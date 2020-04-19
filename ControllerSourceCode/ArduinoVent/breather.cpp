@@ -27,7 +27,7 @@
 #include "bmp280_int.h"
 #include "hal.h"
 #include "log.h"
-//#include "pressure.h"
+#include "pressure.h"
 #include "event.h"
 #include "alarm.h"
 #include "serialWriter.h"
@@ -234,9 +234,9 @@ void breatherLoop()
     {
         float gets[5] = {
             propGetDutyCycle(),
-            propGetBps(),
-            pressGetRawVal(),
-            getFlowRate(),
+            propGetBpm(),
+            pressGetRawVal(PRESSURE),
+            pressGetRawVal(FLOW),
             (float)propGetVent()};
         // getPsi();mx5700 not necessary differential pressure
         addtoSerialBuff(gets);

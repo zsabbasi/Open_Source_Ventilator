@@ -217,11 +217,11 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define LCD_CFG_E               12  // Connector Pin 15 - Digital12
 #define LCD_CFG_RS              13  // Connector Pin 16 - Digital13
 
-// stepper motor
-#define   STEPPER_MOTOR_STEP_PIN   4 // D4. also, if this is undefined (commented) the motor function if disabled
-#define   STEPPER_MOTOR_DIR_PIN    5 // D5
-//#define   STEPPER_MOTOR_EOC_PIN    // TBD... Enf-Of-Course sensor (switch) active low.
-#define   STEPPER_MOTOR_INVERT_DIR  // uncoment/comment this line according to your mechanic orientation
+// // stepper motor
+// #define   STEPPER_MOTOR_STEP_PIN   4 // D4. also, if this is undefined (commented) the motor function if disabled
+// #define   STEPPER_MOTOR_DIR_PIN    5 // D5
+// //#define   STEPPER_MOTOR_EOC_PIN    // TBD... Enf-Of-Course sensor (switch) active low.
+// #define   STEPPER_MOTOR_INVERT_DIR  // uncoment/comment this line according to your mechanic orientation
 
 //-------------------------------------------------------------------
 
@@ -361,7 +361,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
   #define ENABLE_MICROSEC_TIMER
 #endif
 
-#define LOOP_MONITOR_PIN A2 // A2   this is for debugging only, should be always commented out
+//#define LOOP_MONITOR_PIN A2 // A2   this is for debugging only, should be always commented out
                             // Also connected to SW3
 // Profile on April 06th: Main loop taking 180 microseconds to be processed.
 
