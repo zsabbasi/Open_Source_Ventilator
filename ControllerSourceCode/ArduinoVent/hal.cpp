@@ -256,10 +256,8 @@ void halInit(uint8_t reset_val) {
 // ------ valves -------
   pinMode(VALVE_IN_PIN, OUTPUT);           // set pin to input
   pinMode(VALVE_OUT_PIN, OUTPUT);           // set pin to input
-  pinMode(VALVE_PRESSURE_PIN, OUTPUT);      // set pin to input  
   halValveInClose();
   halValveOutOpen();
-  halValvePressureOpen();
 
   tm_key_sampling = halStartTimerRef();
   initWdt(reset_val);
@@ -449,22 +447,6 @@ void halValveOutClose()
     digitalWrite(VALVE_OUT_PIN, HIGH);
 #else
     digitalWrite(VALVE_OUT_PIN, LOW);
-#endif
-}
-void halValvePressureOpen()
-{
-#ifdef VALVE_ACTIVE_LOW
-  digitalWrite(VALVE_PRESSURE_PIN, LOW);
-#else
-  digitalWrite(VALVE_PRESSURE_PIN, HIGH);
-#endif
-}
-void halValvePressureClose()
-{
-#ifdef VALVE_ACTIVE_LOW
-  digitalWrite(VALVE_PRESSURE_PIN, HIGH);
-#else
-  digitalWrite(VALVE_PRESSURE_PIN, LOW);
 #endif
 }
 //---------- Stepper Motor ---------

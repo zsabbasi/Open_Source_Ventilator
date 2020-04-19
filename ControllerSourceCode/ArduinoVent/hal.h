@@ -86,8 +86,6 @@ void halValveInOpen();
 void halValveInClose();
 void halValveOutOpen();
 void halValveOutClose();
-void halValvePressureOpen();
-void halValvePressureClose();
 
 void halBeepAlarmOnOff( bool on);
 

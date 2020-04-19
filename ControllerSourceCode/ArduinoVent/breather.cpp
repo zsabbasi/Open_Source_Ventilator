@@ -217,7 +217,6 @@ static void fsmStopping()
         b_state = B_ST_STOPPED;
         halValveOutOpen();
         halValveInClose();
-        halValvePressureClose();
     }
 }
 
