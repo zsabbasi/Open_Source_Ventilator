@@ -77,6 +77,9 @@ static uint8_t tail_idx = 0;
 static uint8_t ready_cnt = 0;
 static uint64_t tm_press;
 
+static uint16_t volumeInCurrentCycle = 0;
+static uint16_t tidalVolume = 0;
+
 static int32_t av[NUM_P_SENSORS];
 static float cmH2O[NUM_P_SENSORS];
 
@@ -92,7 +95,7 @@ void CalculateAveragePressure(psensor_t sensor)
   for (i = 0; i < NUM_P_SENSORS; i++)
   {
     rawSensorValue = 0;
-    if (i == 0)
+    if (i == PRESSURE)
     {
 
 #if (USE_Mpxv7002DP_PRESSURE_SENSOR == 1)
@@ -152,8 +155,18 @@ void CalculateAveragePressure(psensor_t sensor)
     accumulator[i] += rawSensorValue;
 
     av[i] = accumulator[i] / AVERAGE_BIN_NUMBER;
-    cmH2O[i] = P_CONV * ((av[i] / MAX_BIN_INPUT_F) - 0.08) / 0.09;
 
+    if(i==FLOW) {
+       #ifdef USE_ANALOG_FLOW_SENSOR
+          cmH2O[i] = ((av[i] / MAX_BIN_INPUT_F) - 0.08) / 0.09;
+       #endif
+       #ifndef USE_ANALOG_FLOW_SENSOR
+          cmH2O[i] = P_CONV * ((av[i] / MAX_BIN_INPUT_F) - 0.08) / 0.09;
+       #endif
+      volumeInCurrentCycle = volumeInCurrentCycle + (cmH2O[i] * PRESSURE_READ_DELAY);
+    }else{
+      cmH2O[i] = P_CONV * ((av[i] / MAX_BIN_INPUT_F) - 0.08) / 0.09;
+    }
   } // for loop
 
   tail_idx++;
@@ -189,6 +202,16 @@ void pressInit()
 #endif
 }
 
+void startTidalVolumeCalculation() {
+    volumeInCurrentCycle = 0;
+}
+
+uint16_t endTidalVolumeCalculation() {
+  tidalVolume = volumeInCurrentCycle/60000;
+  volumeInCurrentCycle = 0;
+  return volumeInCurrentCycle;
+}
+
 void pressLoop()
 {
   if (halCheckTimerExpired(tm_press, PRESSURE_READ_DELAY))
@@ -222,6 +245,9 @@ int32_t pressGetRawVal(psensor_t sensor)
   return av[sensor];
 }
 
+uint16_t pressGetTidalVolume() {
+  return tidalVolume;
+}
 //-----------------------------------------------------------------
 #else
 // Stubbs

@@ -24,6 +24,7 @@
 #include "event.h"
 #include "properties.h"
 #include "pressure.h"
+#include "serialWriter.h"
 
 #ifndef LCD_CFG_I2C
   #include "LcdMv.h"
@@ -263,6 +264,7 @@ void halInit(uint8_t reset_val) {
   initWdt(reset_val);
   pressInit();
   motorInit();
+  serialInit();
 }
 
 static void testKey()

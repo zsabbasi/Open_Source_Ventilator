@@ -30,6 +30,7 @@
 #include "alarm.h"
 #include "languages.h"
 #include "toyotaMafSensor.h"
+#include "pressure.h"
 
 //#define TEST_WDT // Debug only... it makes Watchdor to trigger reset when Set button is pressed
 
@@ -254,7 +255,7 @@ static char *  getTidalVolume()
 {
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
- float f = 0.0; // pressGetFloatVal(PRESSURE);
+ uint16_t f = pressGetTidalVolume();
 #ifndef VENTSIM
     dtostrf(f, 2, 2, buf);
 #else

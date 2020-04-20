@@ -3,14 +3,20 @@
 #include "config.h"
 #include "properties.h"
 #include "pressure.h"
+#include "log.h"
+
 #define byte uint8_t
 
-SoftwareSerial monitor(RX_PIN, TX_PIN);
+static SoftwareSerial monitor(RX_PIN, TX_PIN);
 
-bool sendSerialBuff(float serialSendParams[5])
+void serialInit() {
+    monitor.begin(9600);
+}
+
+bool sendSerialBuff(float serialSendParams[6])
 {
     monitor.write(0x23);
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 6; i++)
     {
         byte *b = (byte *)&serialSendParams[i];
         monitor.write(b[0]);
@@ -24,11 +30,12 @@ bool sendSerialBuff(float serialSendParams[5])
 
 void sendDataViaSerial()
 {
-    float gets[5] = {
+    float gets[6] = {
         propGetDutyCycle(),
         propGetBpm(),
-        pressGetRawVal(PRESSURE),
-        pressGetRawVal(FLOW),
-        (float)propGetVent()};
+        pressGetFloatVal(PRESSURE),
+        pressGetFloatVal(FLOW),
+        (int)pressGetTidalVolume(),
+        propGetVent()};
     sendSerialBuff(gets); //send to serial the float array
 }

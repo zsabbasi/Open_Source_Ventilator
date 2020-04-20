@@ -45,6 +45,8 @@ static int curr_out_milli;
 static int curr_total_cycle_milli;
 static int curr_progress;
 static uint64_t tm_start;
+static int16_t highPressure;
+static int16_t lowPressure;
 
 static bool fast_calib;
 
@@ -82,6 +84,8 @@ void breatherStartCycle()
     halValveOutClose();
     halValveInOpen();
     fast_calib = false;
+    highPressure = propGetHighPressure();
+    lowPressure = propGetLowPressure();
 
   motorStartInspiration(curr_in_milli);
   
@@ -122,13 +126,13 @@ static void fsmIn()
   //--------- we check for low pressure at 50% or grater
   // low pressure hardcode to 3 InchH2O -> 90 int
   if (curr_progress < 50) {
-      if (pressGetRawVal(PRESSURE) < 90) {
+      if (getCmH2OGauge(PRESSURE) < lowPressure) {
         CEvent::post(EVT_ALARM, ALARM_IDX_LOW_PRESSURE);
       }
   }
   
   //------ check for high pressure hardcode to 35 InchH2O -> 531 int
-  if (pressGetRawVal(PRESSURE) > 513) {
+  if (getCmH2OGauge(PRESSURE) > highPressure) {
     CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_PRESSURE);
   }
 

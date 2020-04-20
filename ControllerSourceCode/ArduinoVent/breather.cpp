@@ -37,7 +37,7 @@
 #define TM_STOPPING 4000 // 4 seconds to stop
 
 #define TM_FAST_CALIBRATION 4000 // 4 seconds
-
+#define TM_DATA_LOG_DELAY 500 // 500 milliseconds
 
 static int curr_pause;
 static int curr_rate;
@@ -46,9 +46,10 @@ static int curr_out_milli;
 static int curr_total_cycle_milli;
 static int curr_progress;
 static uint64_t tm_start;
+static uint64_t tm_serialLog;
 static int16_t highPressure;
 static int16_t lowPressure;
-
+static uint16_t tidalVolume;
 static bool fast_calib;
 
 static const int rate[4] = {1,2,3,4} ;
@@ -81,11 +82,12 @@ void breatherStartCycle()
     curr_out_milli = in_out_t - curr_in_milli;
     curr_progress = 0;
     tm_start = halStartTimerRef();
+    tm_serialLog = halStartTimerRef();
     b_state = B_ST_IN;
     halValveOutClose();
     halValveInOpen();
     fast_calib = false;
-  
+    startTidalVolumeCalculation();
     highPressure = propGetHighPressure();
     lowPressure = propGetLowPressure();
 
@@ -126,6 +128,7 @@ static void fsmIn()
         halValveInClose();
         tm_start = halStartTimerRef();
         b_state = B_ST_WAIT_TO_OUT;
+        tidalVolume = endTidalVolumeCalculation();
     }
     else {
         curr_progress = ((m - tm_start) * 100)/ curr_in_milli;
@@ -228,9 +231,10 @@ static void fsmPause()
 
 void breatherLoop()
 {
-    if (halCheckTimerExpired(tm_press, PRESSURE_READ_DELAY))
+    if (halCheckTimerExpired(tm_serialLog, TM_DATA_LOG_DELAY))
     {
         sendDataViaSerial();
+        tm_serialLog = halStartTimerRef();
     }
 
     if (b_state != B_ST_STOPPED && b_state != B_ST_STOPPING && propGetVent() == 0) {
