@@ -52,7 +52,7 @@ end
 #include "hal.h"
 #include "config.h"
 #include "bmp280_int.h"
-#include "toyotaMafFlowSensor.h"
+#include "toyotaMafSensor.h"
 #include <stdint.h>
 
 #ifdef VENTSIM
