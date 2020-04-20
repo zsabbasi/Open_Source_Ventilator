@@ -31,7 +31,7 @@
 
 //#define SHOW_PREESURE_LOGS
 
-#define I2C_ADDRESS 0x77 // SDO pin must be left high. Otherwise, if SDO grounded, address is 0x76
+#define I2C_ADDRESS 0x76 // SDO pin must be left high. Otherwise, if SDO grounded, address is 0x76
 
 #define TM_LOG 2000
 #define TM_INIT_RETRY 200

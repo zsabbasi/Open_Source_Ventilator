@@ -29,6 +29,7 @@
 #include <string.h>
 #include "alarm.h"
 #include "languages.h"
+#include "toyotaMafSensor.h"
 
 //#define TEST_WDT // Debug only... it makes Watchdor to trigger reset when Set button is pressed
 
@@ -240,7 +241,7 @@ static char *  getFlow ()
 {
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
- float f = getCmH2OGauge(); // pressGetFloatVal(FLOW);
+ float f = getFlowRate(); // pressGetFloatVal(FLOW);
 #ifndef VENTSIM
     dtostrf(f, 2, 2, buf);
 #else

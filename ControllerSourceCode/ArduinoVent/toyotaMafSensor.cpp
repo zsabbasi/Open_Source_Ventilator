@@ -1,7 +1,7 @@
 
 
 #include <Arduino.h>
-#include "pressureD.h"
+#include "toyotaMafSensor.h"
 #include <math.h> //M_PI
 #include "config.h"
 //#include <stdio.h>
@@ -19,7 +19,7 @@ float mapfloat(long x, long in_min, long in_max, long out_min, long out_max)
 	return (float)(x - in_min) * (out_max - out_min) / (float)(in_max - in_min) + out_min;
 }
 
-#ifdef CAR_FLOW_SENSOR
+#ifdef USE_CAR_FLOW_SENSOR
 float getFlowRate()
 {
 	int val = analogRead(FLOW_SENSOR_PIN);
@@ -29,7 +29,7 @@ float getFlowRate()
 }
 #endif
 
-#ifndef CAR_FLOW_SENSOR
+#ifndef USE_CAR_FLOW_SENSOR
 float getFlowRate()
 {
 	float kpa = getPsi(FLOW_SENSOR_PIN); //for nano A9 FOR MEGA
