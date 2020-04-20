@@ -48,7 +48,6 @@ static int curr_progress;
 static uint64_t tm_start;
 static int16_t highPressure;
 static int16_t lowPressure;
-static int iterCount = 0;
 
 static bool fast_calib;
 
@@ -229,19 +228,9 @@ static void fsmPause()
 
 void breatherLoop()
 {
-    iterCount += 1;
-    if (iterCount % 10 == 0)
+    if (halCheckTimerExpired(tm_press, PRESSURE_READ_DELAY))
     {
-        float gets[5] = {
-            propGetDutyCycle(),
-            propGetBpm(),
-            pressGetRawVal(PRESSURE),
-            pressGetRawVal(FLOW),
-            (float)propGetVent()};
-        // getPsi();mx5700 not necessary differential pressure
-        addtoSerialBuff(gets);
-        sendSerialBuff(); //send to serial the float array
-        iterCount = 0;
+        sendDataViaSerial();
     }
 
     if (b_state != B_ST_STOPPED && b_state != B_ST_STOPPING && propGetVent() == 0) {
