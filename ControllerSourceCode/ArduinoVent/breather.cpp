@@ -137,13 +137,13 @@ static void fsmIn()
         // low pressure hardcode to 3 InchH2O -> 90 int
         if (tm_start + curr_in_milli/2 < m) {
             if (getCmH2OGauge() < lowPressure) {
-              //CEvent::post(EVT_ALARM, ALARM_IDX_LOW_PRESSURE);
+              CEvent::post(EVT_ALARM, ALARM_IDX_LOW_PRESSURE);
             }
         }
     }
     //------ check for high pressure hardcode to 35 InchH2O -> 531 int
     if (getCmH2OGauge() > highPressure) {
-      //CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_PRESSURE);
+      CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_PRESSURE);
     }
 
 }
