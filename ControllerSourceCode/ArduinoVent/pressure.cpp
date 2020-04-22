@@ -66,22 +66,19 @@ end
 //#define SHOW_VAL
 
 #define TM_LOG 2000
-#define P_CONV 4.01463f
-#define MAX_BIN_INPUT 614
-#define MAX_BIN_INPUT_F 614.0
 
-static int16_t tap_array[NUM_P_SENSORS][AVERAGE_BIN_NUMBER];
-static int32_t accumulator[NUM_P_SENSORS];
-static uint8_t head_idx = 0;
-static uint8_t tail_idx = 0;
-static uint8_t ready_cnt = 0;
+static float accumulator[NUM_P_SENSORS];
+static float binCounts[NUM_P_SENSORS];
+static float peaks[NUM_P_SENSORS];
+static float last[NUM_P_SENSORS];
+
 static uint64_t tm_press;
 
-static uint16_t volumeInCurrentCycle = 0;
-static uint16_t tidalVolume = 0;
+static float volumeInCurrentCycle = 0;
+static float tidalVolume = 0;
 
-static int32_t av[NUM_P_SENSORS];
-static float cmH2O[NUM_P_SENSORS];
+static float av[NUM_P_SENSORS];
+static uint64_t volumeStartTimerRef;
 
 #ifdef SHOW_VAL
 static uint64_t tm_log;
@@ -90,7 +87,7 @@ static uint64_t tm_log;
 void CalculateAveragePressure(psensor_t sensor)
 {
   int i;
-  uint16_t rawSensorValue;
+  float rawSensorValue;
 
   for (i = 0; i < NUM_P_SENSORS; i++)
   {
@@ -112,7 +109,8 @@ void CalculateAveragePressure(psensor_t sensor)
        *      BOSH BMP280 pressure sensor
        *
        *****************************************/
-      rawSensorValue = bpm280GetPressure();
+      bpm280GetPressure();
+      rawSensorValue = getCmH2OGauge();
 
 #else
 #warning "No pressure sensor defined in config.h"
@@ -137,56 +135,40 @@ void CalculateAveragePressure(psensor_t sensor)
       rawSensorValue = getFlowRate();
 #endif
     }
+
+    last[i] = rawSensorValue;
     // clamp it to the max (max value provided by the sensor)
-    if (rawSensorValue >= MAX_BIN_INPUT)
-      rawSensorValue = MAX_BIN_INPUT - 1;
+    if (rawSensorValue >= peaks[i])
+      peaks[i] = rawSensorValue;
 
-    if (ready_cnt >= AVERAGE_BIN_NUMBER)
-    {
-      accumulator[i] -= tap_array[i][tail_idx];
+    accumulator[i] = accumulator[i] + rawSensorValue;
+    binCounts[i] = binCounts[i] + 1;
+
+    av[i] = accumulator[i] / binCounts[i];
+
+    //Reset average to the first bin if already crossed the limit
+    if(binCounts[i] >= AVERAGE_BIN_NUMBER) {
+      accumulator[i] = rawSensorValue;
+      binCounts[i] = 1;
+      peaks[i] = rawSensorValue;
     }
-    //    else {
-    //      ready_cnt++;
-    //    }
 
-    tap_array[i][head_idx] = rawSensorValue;
-    if (head_idx >= AVERAGE_BIN_NUMBER)
-      head_idx = 0;
-    accumulator[i] += rawSensorValue;
-
-    av[i] = accumulator[i] / AVERAGE_BIN_NUMBER;
-
-    if(i==FLOW) {
-       #ifdef USE_ANALOG_FLOW_SENSOR
-          cmH2O[i] = ((av[i] / MAX_BIN_INPUT_F) - 0.08) / 0.09;
-       #endif
-       #ifndef USE_ANALOG_FLOW_SENSOR
-          cmH2O[i] = P_CONV * ((av[i] / MAX_BIN_INPUT_F) - 0.08) / 0.09;
-       #endif
-      volumeInCurrentCycle = volumeInCurrentCycle + (cmH2O[i] * PRESSURE_READ_DELAY);
-    }else{
-      cmH2O[i] = P_CONV * ((av[i] / MAX_BIN_INPUT_F) - 0.08) / 0.09;
+    if(i==FLOW) {    
+      uint64_t timerNow = halStartTimerRef();
+      float slotVolume = ((av[i] *  100.0) * (timerNow - volumeStartTimerRef));
+      volumeInCurrentCycle = volumeInCurrentCycle + slotVolume;
+      // Serial.println(volumeInCurrentCycle);
+      // Serial.println(slotVolume);
+      volumeStartTimerRef = timerNow;
     }
   } // for loop
-
-  tail_idx++;
-  if (tail_idx >= AVERAGE_BIN_NUMBER)
-    tail_idx = 0;
-  head_idx++;
-  if (head_idx >= AVERAGE_BIN_NUMBER)
-    head_idx = 0;
-
-  if (ready_cnt < AVERAGE_BIN_NUMBER)
-  {
-    ready_cnt++;
-  }
 }
 
 //====================================================================
 void pressInit()
 {
 #ifndef VENTSIM
-#if (USE_Mpxv7002DP_PRESSURE_SENSOR == 1)
+#if (USE_Mpxv7002DP_PRESSURE_SENSOR == 1 || USE_CAR_FLOW_SENSOR == 1)
   analogReference(DEFAULT); // Arduino function
 #endif
 #endif
@@ -203,14 +185,16 @@ void pressInit()
 }
 
 void startTidalVolumeCalculation() {
-    volumeInCurrentCycle = 0;
+    volumeInCurrentCycle = 0.0;
+    tidalVolume = 0.0;
+    volumeStartTimerRef = halStartTimerRef();
 }
 
-uint16_t endTidalVolumeCalculation() {
-  tidalVolume = volumeInCurrentCycle/60000;
+void endTidalVolumeCalculation() {
+  tidalVolume = volumeInCurrentCycle * (1000 /* litres to cm3*/) / (60000 * 100); // lires per min instead of per milliseconds
   volumeInCurrentCycle = 0;
-  return volumeInCurrentCycle;
 }
+
 
 void pressLoop()
 {
@@ -236,16 +220,12 @@ void pressLoop()
 #endif
 }
 
-float pressGetFloatVal(psensor_t sensor) // in InchH2O
+float pressGetVal(psensor_t sensor)
 {
-  return cmH2O[sensor];
-}
-int32_t pressGetRawVal(psensor_t sensor)
-{
-  return av[sensor];
+  return last[sensor];
 }
 
-uint16_t pressGetTidalVolume() {
+float pressGetTidalVolume() {
   return tidalVolume;
 }
 //-----------------------------------------------------------------
@@ -254,6 +234,5 @@ uint16_t pressGetTidalVolume() {
 void pressInit() {}
 void pressLoop() {}
 float pressGetFloatVal(psensor_t sensor) { return 0.0; }
-int32_t pressGetRawVal(psensor_t sensor) { return 0; }
 
 #endif //#if ( (USE_Mpxv7002DP_PRESSURE_SENSOR == 1) || (USE_Mpxv7002DP_FLOW_SENSOR == 1) )

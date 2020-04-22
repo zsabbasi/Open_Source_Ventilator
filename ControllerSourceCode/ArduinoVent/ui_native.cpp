@@ -242,7 +242,7 @@ static char *  getFlow ()
 {
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
- float f = getFlowRate(); // pressGetFloatVal(FLOW);
+ float f = pressGetVal(FLOW);
 #ifndef VENTSIM
     dtostrf(f, 2, 2, buf);
 #else
@@ -255,7 +255,7 @@ static char *  getTidalVolume()
 {
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
- uint16_t f = pressGetTidalVolume();
+ float f = pressGetTidalVolume();
 #ifndef VENTSIM
     dtostrf(f, 2, 2, buf);
 #else
@@ -268,7 +268,7 @@ static char *  getPressure()
 {
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
- float f = getCmH2OGauge(); //pressGetFloatVal(PRESSURE);
+ float f = pressGetVal(PRESSURE);
 #ifndef VENTSIM
     dtostrf(f, 2, 2, buf);
 #else

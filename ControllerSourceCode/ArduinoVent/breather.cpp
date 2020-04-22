@@ -49,7 +49,6 @@ static uint64_t tm_start;
 static uint64_t tm_serialLog;
 static int16_t highPressure;
 static int16_t lowPressure;
-static uint16_t tidalVolume;
 static bool fast_calib;
 
 static const int rate[4] = {1,2,3,4} ;
@@ -128,7 +127,7 @@ static void fsmIn()
         halValveInClose();
         tm_start = halStartTimerRef();
         b_state = B_ST_WAIT_TO_OUT;
-        tidalVolume = endTidalVolumeCalculation();
+        endTidalVolumeCalculation();
     }
     else {
         curr_progress = ((m - tm_start) * 100)/ curr_in_milli;
@@ -138,13 +137,13 @@ static void fsmIn()
         // low pressure hardcode to 3 InchH2O -> 90 int
         if (tm_start + curr_in_milli/2 < m) {
             if (getCmH2OGauge() < lowPressure) {
-              CEvent::post(EVT_ALARM, ALARM_IDX_LOW_PRESSURE);
+              //CEvent::post(EVT_ALARM, ALARM_IDX_LOW_PRESSURE);
             }
         }
     }
     //------ check for high pressure hardcode to 35 InchH2O -> 531 int
     if (getCmH2OGauge() > highPressure) {
-      CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_PRESSURE);
+      //CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_PRESSURE);
     }
 
 }

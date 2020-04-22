@@ -35,11 +35,10 @@ typedef enum {
 void pressInit();
 void pressLoop();
 
-float pressGetFloatVal(psensor_t sensor); // in InchH2O
-int32_t pressGetRawVal(psensor_t sensor);
+float pressGetVal(psensor_t sensor);
 
 void startTidalVolumeCalculation();
-uint16_t endTidalVolumeCalculation();
-uint16_t pressGetTidalVolume();
+void endTidalVolumeCalculation();
+float pressGetTidalVolume();
 
 #endif // PRESSURE_H

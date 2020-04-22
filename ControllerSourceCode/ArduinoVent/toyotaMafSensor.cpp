@@ -4,24 +4,54 @@
 #include "toyotaMafSensor.h"
 #include <math.h> //M_PI
 #include "config.h"
-#define PTFCC               63.639
-#define MF                  1.0
-#define VSOURCE             5.0
-
-#define AIR_DENSITY 		1.225 //kgm/m^3
-#define USE_ANALOG_FLOW_SENSOR
-
-float mapfloat(long x, long in_min, long in_max, long out_min, long out_max)
-{
-	return (float)(x - in_min) * (out_max - out_min) / (float)(in_max - in_min) + out_min;
-}
+#include "log.h"
+#include "hal.h"
 
 #ifdef USE_CAR_FLOW_SENSOR
+
+#define TM_INIT_RETRY 200
+
+static uint8_t state;
+static uint64_t tm;
+
+static float fFlow;
+static float fRefFlow;
+
+void mafSetReference()
+{
+  LOGV("Set Flow Ref %d.", fFlow);
+  fRefFlow = fFlow;
+}
+
+void updateRawFlowRate()
+{
+	uint16_t val = analogRead(FLOW_SENSOR_PIN);
+	float volt = val * ( 5.0 ) / (1023L) * 1000; //Calibrated to mV
+	fFlow = (volt - FLOW_RELATION_INTERCEPT) / FLOW_RELATION_SLOPE;
+}
+
+static void checkInit()
+{
+	if (state >= 4)
+		return; // error or OK
+
+	if (halCheckTimerExpired(tm, TM_INIT_RETRY))
+	{
+		updateRawFlowRate();
+		mafSetReference();
+
+		tm = halStartTimerRef();
+		state = 10; // init is completed
+		return;
+	}
+
+	tm = halStartTimerRef();
+}
+
 float getFlowRate()
 {
-	int val = analogRead(FLOW_SENSOR_PIN);
-	float volt = val * 0.004887586 * 1000; //Calibrated to mV
-	
-	return (FLOW_RELATION_INTERCEPT-volt)/FLOW_RELATION_SLOPE ;
+	checkInit();
+	updateRawFlowRate();
+	return fFlow - fRefFlow;
 }
 #endif

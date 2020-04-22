@@ -33,9 +33,9 @@ void sendDataViaSerial()
     float gets[6] = {
         propGetDutyCycle(),
         propGetBpm(),
-        pressGetFloatVal(PRESSURE),
-        pressGetFloatVal(FLOW),
-        (int)pressGetTidalVolume(),
+        pressGetVal(PRESSURE),
+        pressGetVal(FLOW),
+        pressGetTidalVolume(),
         propGetVent()};
     sendSerialBuff(gets); //send to serial the float array
 }
