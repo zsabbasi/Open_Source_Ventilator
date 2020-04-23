@@ -175,6 +175,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 
 //------------ Output Valves -----------
 #define VALVE_IN_ACTIVE_LOW
+#define VALVE_OUT_ACTIVE_LOW
 
 #define VALVE_IN_PIN            2 // D2
 #define VALVE_OUT_PIN           4 // D3

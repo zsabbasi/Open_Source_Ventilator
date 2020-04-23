@@ -127,7 +127,6 @@ static void fsmStopped()
 
 static void fsmIn()
 {
-    LOG("In");
     uint64_t m = halStartTimerRef();
     if (tm_start + curr_in_milli < m) {
         // in valve off
@@ -162,7 +161,7 @@ static void fsmWaitToOut()
         // switch valves
         tm_start = halStartTimerRef();
         b_state = B_ST_OUT;
-        LOG("Wait to out");
+        //LOG("Wait to out");
     }
 }
 
@@ -197,13 +196,11 @@ static void fsmOut()
     else {
         curr_progress = 100 - ((m - tm_start) * 100)/ curr_out_milli;
         if (curr_progress >  100) curr_progress = 100;
-        Serial.print("Current pressure "); Serial.println(currentPressure);
+        
         if (currentPressure > (float)desiredPeep) 
             halValveOutOpen(); // drop the pressure
         if (currentPressure <= (float)desiredPeep) 
-            halValveOutClose(); //don't drop thepressure
-
-        LOG("Close Else");             
+            halValveOutClose(); //don't drop thepressure       
     }
 }
 
