@@ -9,33 +9,24 @@
 
 static SoftwareSerial monitor(RX_PIN, TX_PIN);
 
-void serialInit() {
-    monitor.begin(9600);
-}
-
-bool sendSerialBuff(float serialSendParams[6])
+void serialInit()
 {
-    monitor.write(0x23);
-    for (int i = 0; i < 6; i++)
-    {
-        byte *b = (byte *)&serialSendParams[i];
-        monitor.write(b[0]);
-        monitor.write(b[1]);
-        monitor.write(b[2]);
-        monitor.write(b[3]);
-    }
-    monitor.write(0x24);
-    return true;
+    monitor.begin(9600);
 }
 
 void sendDataViaSerial()
 {
-    float gets[6] = {
-        propGetDutyCycle(),
-        propGetBpm(),
-        pressGetVal(PRESSURE),
-        pressGetVal(FLOW),
-        pressGetTidalVolume(),
-        propGetVent()};
-    sendSerialBuff(gets); //send to serial the float array
+    int dutyCycle = propGetDutyCycle();
+    int bpm = propGetBpm();
+    float pressure = pressGetVal(PRESSURE);
+    float flow = pressGetVal(FLOW);
+    uint16_t tidalVolume = pressGetTidalVolume();
+
+    monitor.write(0x23);
+    monitor.write((uint8_t *) &dutyCycle, 4); //send to serial
+    monitor.write((uint8_t *) &bpm, 4);
+    monitor.write((uint8_t *) &pressure, 4);
+    monitor.write((uint8_t *) &flow, 4);
+    monitor.write((uint8_t *) &tidalVolume, 2);
+    monitor.write(0x24);
 }

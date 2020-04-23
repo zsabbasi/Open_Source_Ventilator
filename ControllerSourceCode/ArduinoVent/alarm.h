@@ -35,7 +35,8 @@ enum {
     ALARM_IDX_FAST_CALIB_TO_START,
     ALARM_IDX_FAST_CALIB_DONE,
     ALARM_IDX_BAD_PRESS_SENSOR,
-
+    ALARM_IDX_HIGH_TIDAL_VOLUME,
+    ALARM_IDX_LOW_TIDAL_VOLUME,
     // Add here new alarm as well as an entry in "alarms" array in alarm.cpp
 
     ALARM_IDX_END   // must be the very last

@@ -75,7 +75,7 @@ static float last[NUM_P_SENSORS];
 static uint64_t tm_press;
 
 static float volumeInCurrentCycle = 0;
-static float tidalVolume = 0;
+static uint16_t tidalVolume = 0;
 
 static float av[NUM_P_SENSORS];
 static uint64_t volumeStartTimerRef;
@@ -186,7 +186,7 @@ void pressInit()
 
 void startTidalVolumeCalculation() {
     volumeInCurrentCycle = 0.0;
-    tidalVolume = 0.0;
+    tidalVolume = 0;
     volumeStartTimerRef = halStartTimerRef();
 }
 
@@ -225,7 +225,7 @@ float pressGetVal(psensor_t sensor)
   return last[sensor];
 }
 
-float pressGetTidalVolume() {
+uint16_t pressGetTidalVolume() {
   return tidalVolume;
 }
 //-----------------------------------------------------------------

@@ -39,6 +39,6 @@ float pressGetVal(psensor_t sensor);
 
 void startTidalVolumeCalculation();
 void endTidalVolumeCalculation();
-float pressGetTidalVolume();
+uint16_t pressGetTidalVolume();
 
 #endif // PRESSURE_H

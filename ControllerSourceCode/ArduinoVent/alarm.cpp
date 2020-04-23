@@ -28,6 +28,8 @@
 #define MAX_SOUND_DEFAULT                   3
 #define MAX_SOUND_ALARM_LOW_PRESSURE        MAX_SOUND_DEFAULT
 #define MAX_SOUND_ALARM_HIGH_PRESSURE       MAX_SOUND_DEFAULT
+#define MAX_SOUND_ALARM_LOW_TIDAL        MAX_SOUND_DEFAULT
+#define MAX_SOUND_ALARM_HIGH_TIDAL       MAX_SOUND_DEFAULT
 #define MAX_SOUND_ALARM_UNDER_SPEED         MAX_SOUND_DEFAULT
 
 // #define SIM_HIGH_PRESSURE
@@ -75,6 +77,16 @@ void muteLowPressureAlarm()
 
 }
 
+void muteHighTidalAlarm()
+{
+
+}
+
+void muteLowTidalAlarm()
+{
+
+}
+
 static alarm_t alarms[] = {
   {
         ST_ALARM_OFF,
@@ -94,6 +106,24 @@ static alarm_t alarms[] = {
         muteLowPressureAlarm
   },
   
+  {
+        ST_ALARM_OFF,
+        0,
+        MAX_SOUND_ALARM_HIGH_TIDAL,
+        STR_ALARM_HIGH_TIDAL,
+        0,
+        muteHighTidalAlarm
+  },
+
+  {
+        ST_ALARM_OFF,
+        0,
+        MAX_SOUND_ALARM_LOW_TIDAL,
+        STR_ALARM_LOW_TIDAL,
+        0,
+        muteLowTidalAlarm
+  },
+
   {
         ST_ALARM_OFF,
         0,
