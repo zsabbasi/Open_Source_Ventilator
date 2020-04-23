@@ -1,6 +1,7 @@
-#include "serialWriter.h"
+#include <Arduino.h>
 #include <SoftwareSerial.h>
 #include "config.h"
+#include "serialWriter.h"
 #include "properties.h"
 #include "pressure.h"
 #include "log.h"
@@ -8,6 +9,17 @@
 #define byte uint8_t
 
 static SoftwareSerial monitor(RX_PIN, TX_PIN);
+struct telemetryEvent
+{
+  uint8_t ventStatus;
+  uint8_t dutyCycle;
+  uint8_t bpm;
+  float pressure;
+  float flow;
+  uint16_t tidalVolume;
+};
+
+typedef struct telemetryEvent TelemetryEvent;
 
 void serialInit()
 {
@@ -16,19 +28,21 @@ void serialInit()
 
 void sendDataViaSerial()
 {
-    uint8_t dutyCycle = propGetDutyCycle();
-    uint8_t bpm = propGetBpm();
-    uint8_t ventStatus = propGetVent();
-    uint16_t tidalVolume = pressGetTidalVolume();
-    float pressure = pressGetVal(PRESSURE);
-    float flow = pressGetVal(FLOW);
+    TelemetryEvent evt;
 
+    evt.dutyCycle = propGetDutyCycle();
+    evt.bpm = propGetBpm();
+    evt.ventStatus = propGetVent();
+    evt.tidalVolume = pressGetTidalVolume();
+    evt.pressure = pressGetVal(PRESSURE);
+    evt.flow = pressGetVal(FLOW);
+
+
+    uint8_t *evtBytes = (uint8_t*)&evt;
+    
     monitor.write(0x23);
-    monitor.write((uint8_t *)&ventStatus, sizeof(&ventStatus)); //send to serial
-    monitor.write((uint8_t *)&dutyCycle, sizeof(&dutyCycle));  //send to serial
-    monitor.write((uint8_t *)&bpm, sizeof(&bpm));
-    monitor.write((uint8_t *)&pressure, sizeof(&pressure));
-    monitor.write((uint8_t *)&flow, sizeof(&flow));
-    monitor.write((uint8_t *)&tidalVolume, sizeof(&tidalVolume));
+    monitor.write(0x23);
+    monitor.write(evtBytes, sizeof(evt));
+    monitor.write(0x24);
     monitor.write(0x24);
 }
