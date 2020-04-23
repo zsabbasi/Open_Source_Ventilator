@@ -16,17 +16,19 @@ void serialInit()
 
 void sendDataViaSerial()
 {
-    int dutyCycle = propGetDutyCycle();
-    int bpm = propGetBpm();
+    uint8_t dutyCycle = propGetDutyCycle();
+    uint8_t bpm = propGetBpm();
+    uint8_t ventStatus = propGetVent();
+    uint16_t tidalVolume = pressGetTidalVolume();
     float pressure = pressGetVal(PRESSURE);
     float flow = pressGetVal(FLOW);
-    uint16_t tidalVolume = pressGetTidalVolume();
 
     monitor.write(0x23);
-    monitor.write((uint8_t *) &dutyCycle, 4); //send to serial
-    monitor.write((uint8_t *) &bpm, 4);
-    monitor.write((uint8_t *) &pressure, 4);
-    monitor.write((uint8_t *) &flow, 4);
-    monitor.write((uint8_t *) &tidalVolume, 2);
+    monitor.write((uint8_t *)&ventStatus, sizeof(&ventStatus)); //send to serial
+    monitor.write((uint8_t *)&dutyCycle, sizeof(&dutyCycle));  //send to serial
+    monitor.write((uint8_t *)&bpm, sizeof(&bpm));
+    monitor.write((uint8_t *)&pressure, sizeof(&pressure));
+    monitor.write((uint8_t *)&flow, sizeof(&flow));
+    monitor.write((uint8_t *)&tidalVolume, sizeof(&tidalVolume));
     monitor.write(0x24);
 }

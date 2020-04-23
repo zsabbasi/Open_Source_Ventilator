@@ -142,19 +142,19 @@ bool propSave()
   pendingSave = false;
 }
 
-void propSetVent(int val) {
+void propSetVent(uint8_t val) {
     //LOG("propSetVent");
     props.propVent = (uint8_t) val & 0x000000ff;
     setSavePending();
 }
 
-void propSetBpm(int val) {
+void propSetBpm(uint8_t val) {
     //LOG("propSetBpm");
     props.propBpm = (uint8_t) val & 0x000000ff;
     setSavePending();
 }
 
-void propSetDutyCycle(int val) {
+void propSetDutyCycle(uint8_t val) {
      //LOG("propSetDutyCycle");
      props.propDutyCycle =  (uint8_t) val & 0x000000ff;
      setSavePending();
@@ -209,17 +209,17 @@ void propSetDesiredPeep(int val) {
 }
 
 // ---------- Getters ------------
-int propGetVent() {
+uint8_t propGetVent() {
 //    LOG("propGetVent");
     return props.propVent;
 }
 
-int propGetBpm() {
+uint8_t propGetBpm() {
     //LOG("propGetBpm");
     return props.propBpm;
 }
 
-int propGetDutyCycle() {
+uint8_t propGetDutyCycle() {
      //LOG("propGetDutyCycle");
      return props.propDutyCycle;
 }

@@ -1,6 +1,7 @@
 #ifndef PROPS_H
 #define PROPS_H
 
+#include <stdint.h>
 /*************************************************************
  * Open Ventilator
  * Copyright (C) 2020 - Marcelo Varanda
@@ -30,9 +31,9 @@ void propLoop();
 bool propSave();
 
 // ---------- Setters ------------
-void propSetVent(int val);
-void propSetBpm(int val);
-void propSetDutyCycle(int val);
+void propSetVent(uint8_t val);
+void propSetBpm(uint8_t val);
+void propSetDutyCycle(uint8_t val);
 void propSetPause(int val);
 void propSetLcdAutoOff(int val);
 void propSetBle(int val);
@@ -43,9 +44,9 @@ void propSetHighTidal(int val);
 void propSetDesiredPeep(int val);
 
 // ---------- Getters ------------
-int propGetVent();
-int propGetBpm();
-int propGetDutyCycle();
+uint8_t propGetVent();
+uint8_t propGetBpm();
+uint8_t propGetDutyCycle();
 int propGetPause();
 int propGetLcdAutoOff();
 int propGetBle();
