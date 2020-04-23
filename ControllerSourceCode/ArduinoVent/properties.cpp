@@ -48,6 +48,7 @@ typedef struct __attribute__ ((packed))  props_st {
   uint8_t propHighPressure;
   uint16_t propLowTidal;
   uint16_t propHighTidal;
+  uint8_t propDesiredPeep;
 
   uint8_t crc;
 } PROPS_T;
@@ -81,7 +82,7 @@ static void setDefaultValues()
   props.propHighPressure       = DEFAULT_HIGH_PRESSURE;
   props.propLowTidal           = DEFAULT_LOW_TIDAL;
   props.propHighTidal          = DEFAULT_HIGH_TIDAL;
-
+  props.propDesiredPeep        = DEFAULT_DESIRED_PEEP;
 
 }
 
@@ -201,6 +202,12 @@ void propSetHighTidal(int val) {
       setSavePending();
 }
 
+void propSetDesiredPeep(int val) {
+      //LOG("propSetBle");
+      props.propDesiredPeep =  (uint8_t) val & 0x000000ff;
+      setSavePending();
+}
+
 // ---------- Getters ------------
 int propGetVent() {
 //    LOG("propGetVent");
@@ -248,7 +255,10 @@ int propGetHighTidal() {
       //LOG("propHighTidal");
       return props.propHighTidal;
 }
-
+int propGetDesiredPeep() {
+      //LOG("propDesiredPeep");
+      return props.propDesiredPeep;
+}
 
 
 //---------------- in case we decide to do a Wear leveling

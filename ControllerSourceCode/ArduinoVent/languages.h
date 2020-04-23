@@ -52,6 +52,7 @@
 #define     STR_LOW_TIDAL               "Low  Tidal"
 #define     STR_HIGH_TIDAL              "High Tidal"
 #define     STR_CALIB_PRESSURES         "Cal. Press"
+#define     STR_PEEP                    "PEEP"
 
 #define     STR_ALARM_LOW_PRESSURE      "LOW AIRWAY PRES!"      // max 16
 #define     STR_ALARM_HIGH_PRESSURE     "OVER PRES ALARM!"      // max 16
@@ -92,9 +93,10 @@
 #define     STR_LOW_TIDAL               "Low  Tidal"
 #define     STR_HIGH_TIDAL              "High Tidal"
 #define     STR_CALIB_PRESSURES         "Cal. Press"
+#define     STR_PEEP                     "PEEP"
 
 #define     STR_ALARM_LOW_PRESSURE      " BAIXA PRESSAO! "      // max 16
-#define     STR_ALARM_HIGH_PRESSURE     "  ALTA PRESSAO! "      // max 16
+#define     STR_ALARM_HIGH_PRESSURE     " ALTA PRESSAO! "      // max 16
 #define     STR_ALARM_LOW_TIDAL         " BAIXA VOLUME!"      // max 16
 #define     STR_ALARM_HIGH_TIDAL        " ALTA VOL!"      // max 16
 #define     STR_ALARM_UNDER_SPEED       "MOT. BAIXA VEL.!"      // max 16

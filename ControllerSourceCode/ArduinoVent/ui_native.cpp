@@ -159,6 +159,8 @@ static int valHighPressure;
 static int valLowTidal;
 static int valHighTidal;
 static int valCalibration;
+static int valDesiredPeep;
+
 //----------- Setters ----------
 
 static void handleChangeVent(int val) {
@@ -202,6 +204,9 @@ static void handleChangeHighTidal(int val) {
     propSetHighTidal(val);
 }
 
+static void handleChangeDesiredPeep(int val) {
+    propSetDesiredPeep(val);
+}
 
 //-------- getters ------
 
@@ -237,6 +242,9 @@ static int handleGetHighTidal() {
     return propGetHighTidal();
 }
 
+static int handleGetDesiredPeep() {
+    return propGetDesiredPeep();
+}
 
 static char *  getFlow ()
 {
@@ -383,6 +391,18 @@ static const char * yesNoTxt[] = {
                                       // different compilers have particular syntax in how to set union. Casting
                                       // with the first function prototype works for all. Hack but better than add lots of #ifdef's
 
+    },
+
+    { PARAM_INT,                // type
+      STR_PEEP,         // name
+      &valDesiredPeep,          // val
+      1,                        // step
+      1,                        // min
+      25,                       // max
+      0,                        // text array for options
+      true,                     // no dynamic changes
+      handleChangeDesiredPeep,  // change prop function
+      { handleGetDesiredPeep }  // propGetter
     },
 
     { PARAM_INT,                // type

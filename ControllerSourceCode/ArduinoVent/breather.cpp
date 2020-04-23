@@ -52,6 +52,7 @@ static int16_t lowPressure;
 static int16_t highTidalVolume;
 static int16_t lowTidalVolume;
 static int16_t tidalVolume;
+static int8_t desiredPeep;
 
 static bool fast_calib;
 
@@ -95,7 +96,7 @@ void breatherStartCycle()
     lowPressure = propGetLowPressure();
     highTidalVolume = propGetHighTidal();
     lowTidalVolume = propGetLowTidal();
-
+    desiredPeep = propGetDesiredPeep();
 
 #if 0
   LOG("Ventilation ON:");
@@ -126,6 +127,7 @@ static void fsmStopped()
 
 static void fsmIn()
 {
+    LOG("In");
     uint64_t m = halStartTimerRef();
     if (tm_start + curr_in_milli < m) {
         // in valve off
@@ -160,13 +162,14 @@ static void fsmWaitToOut()
         // switch valves
         tm_start = halStartTimerRef();
         b_state = B_ST_OUT;
-        halValveOutOpen();
+        LOG("Wait to out");
     }
 }
 
 static void fsmOut()
 {
     uint64_t m = halStartTimerRef();
+    float currentPressure = pressGetVal(PRESSURE);
     if (tm_start + curr_out_milli < m) {
 
         //if we have fast calibration request then we keep the valve open
@@ -182,7 +185,7 @@ static void fsmOut()
         b_state = B_ST_PAUSE;
         halValveOutClose();
 
-        //------ check for high pressure hardcode to 35 InchH2O -> 531 int
+        //------ check for high tidal volume between 3-25 cmH2O
         if (tidalVolume < lowTidalVolume) {
             CEvent::post(EVT_ALARM, ALARM_IDX_LOW_TIDAL_VOLUME);
         }
@@ -194,6 +197,13 @@ static void fsmOut()
     else {
         curr_progress = 100 - ((m - tm_start) * 100)/ curr_out_milli;
         if (curr_progress >  100) curr_progress = 100;
+        Serial.print("Current pressure "); Serial.println(currentPressure);
+        if (currentPressure > (float)desiredPeep) 
+            halValveOutOpen(); // drop the pressure
+        if (currentPressure <= (float)desiredPeep) 
+            halValveOutClose(); //don't drop thepressure
+
+        LOG("Close Else");             
     }
 }
 

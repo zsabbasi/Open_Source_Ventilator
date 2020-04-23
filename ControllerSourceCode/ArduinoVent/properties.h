@@ -40,6 +40,7 @@ void propSetLowPressure(int val) ;
 void propSetHighPressure(int val);
 void propSetLowTidal(int val);
 void propSetHighTidal(int val);
+void propSetDesiredPeep(int val);
 
 // ---------- Getters ------------
 int propGetVent();
@@ -52,5 +53,6 @@ int propGetLowPressure();
 int propGetHighPressure();
 int propGetLowTidal();
 int propGetHighTidal();
+int propGetDesiredPeep();
 
 #endif // PROPS_H

@@ -332,6 +332,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define  DEFAULT_HIGH_PRESSURE   35
 #define  DEFAULT_LOW_TIDAL       100
 #define  DEFAULT_HIGH_TIDAL      1200
+#define  DEFAULT_DESIRED_PEEP    3
 
 //-------------- Checks ---------------
 #if (LCD_CFG_2_ROWS == 1)
