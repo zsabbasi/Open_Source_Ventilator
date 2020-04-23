@@ -263,11 +263,11 @@ static char *  getTidalVolume()
 {
  static char buf[8];
  buf[sizeof(buf) - 1] = 0;
- float f = pressGetTidalVolume();
+ uint16_t f = pressGetTidalVolume();
 #ifndef VENTSIM
-    dtostrf(f, 2, 2, buf);
+    itoa(f, buf, 10);
 #else
-    snprintf(buf, sizeof(buf) - 1, "%f", f);
+    snprintf(buf, sizeof(buf) - 1, "%i", f);
 #endif
     return buf;
 }
@@ -280,7 +280,7 @@ static char *  getPressure()
 #ifndef VENTSIM
     dtostrf(f, 2, 2, buf);
 #else
-    snprintf(buf, sizeof(buf) - 1, "%f", f);
+    snprintf(buf, sizeof(buf) - 1, "%i", f);
 #endif
     return buf;
 }
