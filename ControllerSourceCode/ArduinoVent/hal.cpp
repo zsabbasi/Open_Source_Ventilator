@@ -532,7 +532,11 @@ bool halRestoreDataBlock(uint8_t * data, int _size)
 
 
 //---------------- process keys ----------
-#define   DEBOUNCING_N    4
+#if KEYS_JOYSTICK == 0
+  #define   DEBOUNCING_N    4
+#elif KEYS_JOYSTICK == 1
+  #define   DEBOUNCING_N    2
+#endif
 typedef struct keys_st {
   int state; // 0-> released
   int count;
@@ -551,12 +555,16 @@ bool keyPressed(keys_t key)
 #if (KEYS_JOYSTICK == 1)
   if (key.keyCode == KEY_DECREMENT)
   {
-    int value = analogRead(KEY_INCREMENT);
+    uint16_t value = analogRead(KEY_INCREMENT);
+    // Serial.print("DECREMENT: ");
+    // Serial.println(value);
     return value <= 60;
   }
   if (key.keyCode == KEY_INCREMENT)
   {
-    int value = analogRead(KEY_INCREMENT);
+    uint16_t value = analogRead(KEY_INCREMENT);
+    // Serial.print("INCREMENT: ");
+    // Serial.println(value);
     return value >= 800;
   }
   if (key.keyCode == KEY_SET)
@@ -576,12 +584,12 @@ bool keyReleased(keys_t key)
   if (key.keyCode == KEY_DECREMENT)
   {
     int value = analogRead(KEY_INCREMENT);
-    return value >= 400;
+    return value >= 400 && value < 600;
   }
   if (key.keyCode == KEY_INCREMENT)
   {
     int value = analogRead(KEY_INCREMENT);
-    return value <= 700;
+    return value <= 700 && value > 300;
   }
   if (key.keyCode == KEY_SET)
   {
@@ -604,6 +612,8 @@ static void processKeys()
           if (keyPressed(keys[i])) { // if key is pressed
             keys[i].count++;
             if (keys[i].count >= DEBOUNCING_N) {
+              Serial.print("Pressed: ");
+              Serial.println(keys[i].keyCode);
               //declare key pressed
               keys[i].count = 0;
               keys[i].state = 1;
@@ -620,6 +630,8 @@ static void processKeys()
            if (keyReleased(keys[i])) { // if key is release
             keys[i].count++;
             if (keys[i].count >= DEBOUNCING_N) {
+              Serial.print("Released: ");
+              Serial.println(keys[i].keyCode);
               //declare key released
               keys[i].count = 0;
               keys[i].state = 0;

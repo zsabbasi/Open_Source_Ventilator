@@ -61,7 +61,6 @@ inline bool isMuted (alarm_t * a) {
         return true;
     return false;
 }
-
 void alarmResetAll()
 {
     alarm->internalAlarmResetAll();
@@ -105,24 +104,6 @@ static alarm_t alarms[] = {
         0,
         muteLowPressureAlarm
   },
-  
-  {
-        ST_ALARM_OFF,
-        0,
-        MAX_SOUND_ALARM_HIGH_TIDAL,
-        STR_ALARM_HIGH_TIDAL,
-        0,
-        muteHighTidalAlarm
-  },
-
-  {
-        ST_ALARM_OFF,
-        0,
-        MAX_SOUND_ALARM_LOW_TIDAL,
-        STR_ALARM_LOW_TIDAL,
-        0,
-        muteLowTidalAlarm
-  },
 
   {
         ST_ALARM_OFF,
@@ -159,7 +140,23 @@ static alarm_t alarms[] = {
           0,
           0
     },
+  {
+        ST_ALARM_OFF,
+        0,
+        MAX_SOUND_ALARM_HIGH_TIDAL,
+        STR_ALARM_HIGH_TIDAL,
+        0,
+        muteHighTidalAlarm
+  },
 
+  {
+        ST_ALARM_OFF,
+        0,
+        MAX_SOUND_ALARM_LOW_TIDAL,
+        STR_ALARM_LOW_TIDAL,
+        0,
+        muteLowTidalAlarm
+  },
 
 };
 #define NUM_ALARMS  sizeof(alarms) / sizeof(alarm_t)
@@ -182,6 +179,7 @@ void Alarm::beepOnOff(bool on)
 
 void Alarm::internalAlarmResetAll()
 {
+    LOG("Alarms reset");
     uint8_t i;
     alarm_t * a = alarms;
     activeAlarmIdx = -1;
@@ -224,6 +222,7 @@ void Alarm::setNextAlarmIfAny(bool fromMute)
 
 void Alarm::muteAlarmIfOn()
 {
+    LOG("Mute alarm");
     if (activeAlarmIdx < 0)
         return;
 
@@ -235,8 +234,10 @@ void Alarm::muteAlarmIfOn()
         a->muteAction();
     }
     a->state = ST_ALARM_OFF;
-    if ((a->max_sound != -1) && (a->cnt_sound < a->max_sound))
+    if ((a->max_sound != -1) && (a->cnt_sound < a->max_sound)) {
         a->cnt_sound++;
+        //LOGV("Max sound set to %d", a->cnt_sound);
+    }
 
     activeAlarmIdx = -1;
     CEvent::post(EVT_ALARM_DISPLAY_OFF, 0);
