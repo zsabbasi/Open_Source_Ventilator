@@ -19,7 +19,7 @@
  **************************************************************
 */
 
-
+#include <stdlib.h>
 #include "ui_native.h"
 #include "hal.h"
 #include "properties.h"
@@ -261,11 +261,10 @@ static char *  getFlow ()
 
 static char *  getTidalVolume()
 {
- static char buf[8];
- buf[sizeof(buf) - 1] = 0;
+ static char buf [sizeof(unsigned int)*8+1];
  uint16_t f = pressGetTidalVolume();
 #ifndef VENTSIM
-    itoa(f, buf, 10);
+    utoa(f, buf, 10);
 #else
     snprintf(buf, sizeof(buf) - 1, "%i", f);
 #endif

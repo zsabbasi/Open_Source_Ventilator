@@ -53,6 +53,7 @@ static int16_t highTidalVolume;
 static int16_t lowTidalVolume;
 static int16_t tidalVolume;
 static int8_t desiredPeep;
+static float peakInspiratoryPressure;
 
 static bool fast_calib;
 
@@ -97,6 +98,7 @@ void breatherStartCycle()
     highTidalVolume = propGetHighTidal();
     lowTidalVolume = propGetLowTidal();
     desiredPeep = propGetDesiredPeep();
+    peakInspiratoryPressure = 0;
 
 #if 0
   LOG("Ventilation ON:");
@@ -106,6 +108,32 @@ void breatherStartCycle()
   LOGV(" curr_out_milli = %d", curr_out_milli);
 #endif
 
+}
+
+static void UpdateValveBasedOnPeep()
+{
+    float currentPressure = pressGetVal(PRESSURE);
+
+    if (currentPressure > (float)desiredPeep) 
+        halValveOutOpen(); // drop the pressure
+    if (currentPressure <= (float)desiredPeep) 
+        halValveOutClose(); //don't drop thepressure       
+}
+
+static void CheckAndRespondToHighPressure(float currentPressure)
+{
+    if (currentPressure > peakInspiratoryPressure) {
+      peakInspiratoryPressure = currentPressure;
+    }
+
+    if (peakInspiratoryPressure > highPressure) {
+      CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_PRESSURE);
+    }
+
+    if (currentPressure > (float)highPressure) 
+        halValveOutOpen(); // drop the pressure
+    if (currentPressure <= (float)highPressure) 
+        halValveOutClose(); //don't drop thepressure       
 }
 
 B_STATE_t breatherGetState()
@@ -127,6 +155,8 @@ static void fsmStopped()
 
 static void fsmIn()
 {
+    float pressure = getCmH2OGauge();
+
     uint64_t m = halStartTimerRef();
     if (tm_start + curr_in_milli < m) {
         // in valve off
@@ -143,16 +173,15 @@ static void fsmIn()
         //--------- we check for low pressure at 50% or grater
         // low pressure hardcode to 3 InchH2O -> 90 int
         if (tm_start + curr_in_milli/2 < m) {
-            if (getCmH2OGauge() < lowPressure) {
+            if (pressure < lowPressure) {
               CEvent::post(EVT_ALARM, ALARM_IDX_LOW_PRESSURE);
             }
         }
     }
     //------ check for high pressure hardcode to 35 InchH2O -> 531 int
-    if (getCmH2OGauge() > highPressure) {
-      CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_PRESSURE);
-    }
 
+    CheckAndRespondToHighPressure(pressure);
+    
 }
 
 static void fsmWaitToOut()
@@ -168,7 +197,6 @@ static void fsmWaitToOut()
 static void fsmOut()
 {
     uint64_t m = halStartTimerRef();
-    float currentPressure = pressGetVal(PRESSURE);
     if (tm_start + curr_out_milli < m) {
 
         //if we have fast calibration request then we keep the valve open
@@ -182,7 +210,6 @@ static void fsmOut()
         // switch valves
         tm_start = halStartTimerRef();
         b_state = B_ST_PAUSE;
-        halValveOutClose();
 
         //------ check for high tidal volume between 3-25 cmH2O
         if (tidalVolume < lowTidalVolume) {
@@ -197,10 +224,7 @@ static void fsmOut()
         curr_progress = 100 - ((m - tm_start) * 100)/ curr_out_milli;
         if (curr_progress >  100) curr_progress = 100;
         
-        if (currentPressure > (float)desiredPeep) 
-            halValveOutOpen(); // drop the pressure
-        if (currentPressure <= (float)desiredPeep) 
-            halValveOutClose(); //don't drop thepressure       
+        UpdateValveBasedOnPeep();
     }
 }
 
@@ -245,6 +269,8 @@ static void fsmStopping()
 
 static void fsmPause()
 {
+    UpdateValveBasedOnPeep();
+
     if (halCheckTimerExpired(tm_start, curr_pause)) {
         breatherStartCycle();
     }
