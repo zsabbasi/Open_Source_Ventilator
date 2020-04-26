@@ -114,7 +114,7 @@ static void UpdateValveBasedOnPeep()
 {
     float currentPressure = pressGetVal(PRESSURE);
     int currentPercentageAbovePeep = ((currentPressure - (float)desiredPeep)/desiredPeep) * 100;
-    Serial.println(currentPercentageAbovePeep);
+    //Serial.println(currentPercentageAbovePeep);
 
     if (currentPercentageAbovePeep > 60)
     { 
