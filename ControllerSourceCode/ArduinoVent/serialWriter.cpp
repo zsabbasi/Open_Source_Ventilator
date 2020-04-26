@@ -14,6 +14,7 @@ struct telemetryEvent
   uint8_t ventStatus;
   uint8_t dutyCycle;
   uint8_t bpm;
+  uint8_t peep;
   float pressure;
   float flow;
   uint16_t tidalVolume;
@@ -36,7 +37,7 @@ void sendDataViaSerial()
     evt.tidalVolume = pressGetTidalVolume();
     evt.pressure = pressGetVal(PRESSURE);
     evt.flow = pressGetVal(FLOW);
-
+    evt.peep = propGetDesiredPeep();
 
     uint8_t *evtBytes = (uint8_t*)&evt;
     

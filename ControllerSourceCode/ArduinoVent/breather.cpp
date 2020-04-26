@@ -113,11 +113,16 @@ void breatherStartCycle()
 static void UpdateValveBasedOnPeep()
 {
     float currentPressure = pressGetVal(PRESSURE);
+    int currentPercentageAbovePeep = ((currentPressure - (float)desiredPeep)/desiredPeep) * 100;
+    Serial.println(currentPercentageAbovePeep);
 
-    if (currentPressure > (float)desiredPeep) 
+    if (currentPercentageAbovePeep > 60)
+    { 
         halValveOutOpen(); // drop the pressure
-    if (currentPressure <= (float)desiredPeep) 
-        halValveOutClose(); //don't drop thepressure       
+    }else if(currentPercentageAbovePeep < 50)
+    { 
+        halValveOutClose(); //don't drop thepressure
+    }       
 }
 
 static void CheckAndRespondToHighPressure(float currentPressure)
@@ -127,13 +132,12 @@ static void CheckAndRespondToHighPressure(float currentPressure)
     }
 
     if (peakInspiratoryPressure > highPressure) {
-      CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_PRESSURE);
-    }
-
-    if (currentPressure > (float)highPressure) 
+        CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_PRESSURE);
         halValveOutOpen(); // drop the pressure
-    if (currentPressure <= (float)highPressure) 
-        halValveOutClose(); //don't drop thepressure       
+        halValveInClose();
+    } else {
+        halValveOutClose();
+    }     
 }
 
 B_STATE_t breatherGetState()
@@ -290,7 +294,7 @@ void breatherLoop()
         b_state = B_ST_STOPPING;
         curr_progress = 0;
         halValveInClose();
-        halValveOutOpen();
+        UpdateValveBasedOnPeep();
     }
 
     if (b_state == B_ST_STOPPED)
