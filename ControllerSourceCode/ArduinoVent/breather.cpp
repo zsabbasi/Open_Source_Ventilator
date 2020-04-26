@@ -116,10 +116,10 @@ static void UpdateValveBasedOnPeep()
     int currentPercentageAbovePeep = ((currentPressure - (float)desiredPeep)/desiredPeep) * 100;
     //Serial.println(currentPercentageAbovePeep);
 
-    if (currentPercentageAbovePeep > 60)
+    if (currentPercentageAbovePeep > 40)
     { 
         halValveOutOpen(); // drop the pressure
-    }else if(currentPercentageAbovePeep < 50)
+    }else if(currentPercentageAbovePeep < 30)
     { 
         halValveOutClose(); //don't drop thepressure
     }       

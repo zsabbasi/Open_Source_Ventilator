@@ -22,7 +22,7 @@
 */
 #include <stdint.h>
 
-#define AVERAGE_BIN_NUMBER        6        // Number of averaging bins for the averaging routine
+#define AVERAGE_BIN_NUMBER        2        // Number of averaging bins for the averaging routine
 #define PRESSURE_READ_DELAY       20L       // wait 20 ms between reads
 
 typedef enum {

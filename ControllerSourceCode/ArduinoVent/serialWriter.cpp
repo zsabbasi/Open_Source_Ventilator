@@ -5,6 +5,7 @@
 #include "properties.h"
 #include "pressure.h"
 #include "log.h"
+#include "breather.h"
 
 #define byte uint8_t
 
@@ -15,6 +16,7 @@ struct telemetryEvent
   uint8_t dutyCycle;
   uint8_t bpm;
   uint8_t peep;
+  uint8_t phase;
   float pressure;
   float flow;
   uint16_t tidalVolume;
@@ -38,7 +40,7 @@ void sendDataViaSerial()
     evt.pressure = pressGetVal(PRESSURE);
     evt.flow = pressGetVal(FLOW);
     evt.peep = propGetDesiredPeep();
-
+    evt.phase = (uint8_t)breatherGetState();
     uint8_t *evtBytes = (uint8_t*)&evt;
     
     monitor.write(0x23);
