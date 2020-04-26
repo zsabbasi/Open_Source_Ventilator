@@ -116,6 +116,8 @@ static void UpdateValveBasedOnPeep()
     int currentPercentageAbovePeep = ((currentPressure - (float)desiredPeep)/desiredPeep) * 100;
     //Serial.println(currentPercentageAbovePeep);
 
+    //This is because of not haveing a solidnoid fast and reliable enough
+    //TODO: Try out with a proper exhale valve that is reliable with a manual PEEP valve calibrated to min PEEP.
     if (currentPercentageAbovePeep > 40)
     { 
         halValveOutOpen(); // drop the pressure
