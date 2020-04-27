@@ -24,7 +24,7 @@
 #include <stdint.h>
 #define TEXT_PARAM_SIZE 21
 
-enum  {
+enum {
     KEY_DECREMENT,
     KEY_INCREMENT,
     KEY_SET,
@@ -32,17 +32,16 @@ enum  {
     KEY_RESERVE
 };
 
+typedef enum {
+    EVENT_KEY_PRESS,
+    EVENT_KEY_RELEASE,
 
-typedef enum  {
-    EVT_KEY_PRESS,
-    EVT_KEY_RELEASE,
-
-    EVT_ALARM,
+    EVENT_ALARM,
 
     EVT_ALARM_DISPLAY_ON,
-    EVT_ALARM_DISPLAY_OFF,
+    EVENT_ALARM_DISPLAY_OFF,
 
-} EVENT_TYPE;
+} eventType_t;
 
 typedef  enum {
     PROPAGATE = 0,
@@ -50,7 +49,7 @@ typedef  enum {
 } propagate_t;
 
 typedef struct event_st {
-    EVENT_TYPE type;
+    eventType_t type;
     union {
         int iParam;
         unsigned long long lParam;
@@ -58,29 +57,25 @@ typedef struct event_st {
     } param;
 } event_t;
 
-
-void evtDispatchAll();
+void eventDispatchAll();
 
 class CEvent {
 
 public:
     CEvent();
+
     ~CEvent();
 
-    static void post( EVENT_TYPE type,
-                      int iParam);
+    static void post(eventType_t type, int iParam);
 
-    static void post( EVENT_TYPE type,
-                      uint64_t lParam);
+    static void post(eventType_t type, uint64_t lParam);
 
-    static void post( EVENT_TYPE type,
-                      char * tParam);
+    static void post(eventType_t type, char *tParam);
 
-    virtual propagate_t onEvent(event_t * event);
+    virtual propagate_t onEvent(event_t *event);
 
 private:
-    static void post (event_t * event);
+    static void post(event_t *event);
 };
-
 
 #endif // EVENT_H

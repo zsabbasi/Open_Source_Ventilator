@@ -19,7 +19,7 @@
  **************************************************************
 */
 
-#include <stdlib.h>
+
 #include "ui_native.h"
 #include "hal.h"
 #include "properties.h"
@@ -39,7 +39,7 @@
 #define BLINK_PARAMETER_VAL         1
 #define BLINK_SATUS                 2
 
-//static int params_idx = 0;
+//static int paramsIndex = 0;
 
 #define LCD_STATUS_ROW              0
 #define LCD_PARAMS_FIRST_ROW        1
@@ -77,9 +77,9 @@
 #define PROGRESS_CHARACTER '|'
 
 static const char * st_txt[3] = {
-    (const char *) STR_IDLE,
-    (const char *) STR_RUN,
-    (const char *) STR_ERR
+        (const char *) STR_IDLE,
+        (const char *) STR_RUN,
+        (const char *) STR_ERR
 };
 
 typedef enum {
@@ -88,8 +88,7 @@ typedef enum {
     PARAM_TEXT_GETTER,
 
     PARAM_END
-
-} p_type_t;
+} paramType_t;
 
 typedef void (*propchangefunc_t)(int);
 typedef int (*propgetfunc_t)();
@@ -97,18 +96,18 @@ typedef char * (*txtGetterfunc_t)();
 
 
 typedef struct params_st {
-    p_type_t        type;
-    const char *    name;
-    int        *    val;
-    int             step;
-    int             min;
-    int             max;
-    const char **   options;
-    bool            quickUpdate;
+    paramType_t type;
+    const char *name;
+    int *val;
+    int step;
+    int min;
+    int max;
+    const char **options;
+    bool quickUpdate;
     propchangefunc_t handler;
     union {
-      propgetfunc_t   propGetter;
-      txtGetterfunc_t txtGetter;  // valid for PARAM_TEXT_GETTER. Value is update periodicly on screen
+        propgetfunc_t propGetter;
+        txtGetterfunc_t txtGetter;  // valid for PARAM_TEXT_GETTER. Value is update periodicly on screen
     } getter;
 
 } params_t;
@@ -119,34 +118,30 @@ static CUiNative * uiNative;
 static void handleChangeCalibration(int val);
 
 
-void uiNativeInit()
-{
-  uiNative = new CUiNative();
-}
-void uiNativeLoop()
-{
-  uiNative->loop();
+void uiNativeInit() {
+    uiNative = new CUiNative();
 }
 
-void CUiNative::updateStatus(bool blank)
-{
-  char buf[LCD_NUM_COLS+1];
-  memset(buf, 0x20, LCD_NUM_COLS);
-  buf[LCD_NUM_COLS] = 0;
-  int len;
+void uiNativeLoop() {
+    uiNative->loop();
+}
 
-  if (alarm_mode == true) {
-    if (blank == false) {
-      strcpy(buf, alarm_msg);
-      len = strlen(buf);
+void CUiNative::updateStatus(bool blank) {
+    char buf[LCD_NUM_COLS + 1];
+    memset(buf, 0x20, LCD_NUM_COLS);
+    buf[LCD_NUM_COLS] = 0;
+    int len;
+
+    if (alarmMode) {
+        if (!blank) {
+            strcpy(buf, alarmMessage);
+            len = strlen(buf);
+        } else len = 0;
+    } else {
+        len = sprintf(buf, "st=%s", (const char *) st_txt[(int) stateIndex]);
     }
-    else len = 0;
-  }
-  else {
-    len = sprintf(buf, "st=%s", (const char *) st_txt[(int) state_idx]);
-  }
-  buf[len] = 0x20;
-  halLcdWrite(0, LCD_STATUS_ROW, buf);
+    buf[len] = 0x20;
+    halLcdWrite(0, LCD_STATUS_ROW, buf);
 }
 
 //------ parameter values holders -------
@@ -167,10 +162,9 @@ static void handleChangeVent(int val) {
     propSetVent(val);
     if (val) {
         alarmResetAll();
-        uiNative->state_idx = STATE_RUN;
-    }
-    else {
-        uiNative->state_idx = STATE_IDLE;
+        uiNative->stateIndex = STATE_RUN;
+    } else {
+        uiNative->stateIndex = STATE_IDLE;
     }
     uiNative->updateStatus(false);
 }
@@ -180,11 +174,11 @@ static void handleChangeBpm(int val) {
 }
 
 static void handleChangeDutyCycle(int val) {
-     propSetDutyCycle(val);
+    propSetDutyCycle(val);
 }
 
 static void handleChangePause(int val) {
-     propSetPause(val);
+    propSetPause(val);
 }
 
 static void handleChangeLowPressure(int val) {
@@ -194,7 +188,6 @@ static void handleChangeLowPressure(int val) {
 static void handleChangeHighPressure(int val) {
     propSetHighPressure(val);
 }
-
 
 static void handleChangeLowTidal(int val) {
     propSetLowTidal(val);
@@ -223,7 +216,7 @@ static int handleGetDutyCycle() {
 }
 
 static int handleGetPause() {
-     return propGetPause();
+    return propGetPause();
 }
 
 static int handleGetLowPressure() {
@@ -246,11 +239,10 @@ static int handleGetDesiredPeep() {
     return propGetDesiredPeep();
 }
 
-static char *  getFlow ()
-{
- static char buf[8];
- buf[sizeof(buf) - 1] = 0;
- float f = pressGetVal(FLOW);
+static char *  getFlow () {
+    static char buf[8];
+    buf[sizeof(buf) - 1] = 0;
+    float f = pressGetVal(FLOW);
 #ifndef VENTSIM
     dtostrf(f, 2, 2, buf);
 #else
@@ -259,23 +251,22 @@ static char *  getFlow ()
     return buf;
 }
 
-static char *  getTidalVolume()
-{
- static char buf [sizeof(unsigned int)*8+1];
- uint16_t f = pressGetTidalVolume();
+static char *  getTidalVolume() {
+    static char buf[8];
+    buf[sizeof(buf) - 1] = 0;
+    uint16_t f = pressGetTidalVolume();
 #ifndef VENTSIM
-    utoa(f, buf, 10);
+    itoa(f, buf, 10);
 #else
     snprintf(buf, sizeof(buf) - 1, "%i", f);
 #endif
     return buf;
 }
 
-static char *  getPressure()
-{
- static char buf[8];
- buf[sizeof(buf) - 1] = 0;
- float f = pressGetVal(PRESSURE);
+static char *  getPressure() {
+    static char buf[8];
+    buf[sizeof(buf) - 1] = 0;
+    float f = pressGetVal(PRESSURE);
 #ifndef VENTSIM
     dtostrf(f, 2, 2, buf);
 #else
@@ -285,13 +276,13 @@ static char *  getPressure()
 }
 
 static const char * onOffTxt[] = {
-    STR_OFF,
-    STR_ON,
+        STR_OFF,
+        STR_ON,
 };
 
 static const char * yesNoTxt[] = {
-     STR_NO,
-     STR_YES,
+        STR_NO,
+        STR_YES,
 };
 
 #ifndef VENTSIM
@@ -299,174 +290,173 @@ static const char * yesNoTxt[] = {
 #else
   static params_t params[]  =  {
 #endif
-    { PARAM_CHOICES,            // type
-      STR_VENTILATOR,           // name
-      &valVent,                 // val
-      1,                        // step
-      0,                        // min
-      1,                        // max
-      onOffTxt ,                // text array for options
-      false,                    // no dynamic changes
-      handleChangeVent,         // change prop function
-      { handleGetVent },        // propGetter
-    },
+        {PARAM_CHOICES,            // type
+         STR_VENTILATOR,           // name
+         &valVent,                 // val
+         1,                        // step
+         0,                        // min
+         1,                        // max
+         onOffTxt,                 // text array for options
+         false,                    // no dynamic changes
+         handleChangeVent,         // change prop function
+         {handleGetVent},          // propGetter
+        },
 
-    { PARAM_INT,                // type
-      STR_BPM,                  // name
-      &valBpm,                  // val
-      5,                        // step
-      10,                       // min
-      30,                       // max
-      0,                        // text array for options
-      true,                     // no dynamic changes
-      handleChangeBpm,          // change prop function
-      { handleGetBpm }          // propGetter
-    },
+        {PARAM_INT,                // type
+         STR_BPM,                  // name
+         &valBpm,                  // val
+         5,                        // step
+         10,                       // min
+         30,                       // max
+         0,                        // text array for options
+         true,                     // no dynamic changes
+         handleChangeBpm,          // change prop function
+         {handleGetBpm}            // propGetter
+        },
 
-    { PARAM_CHOICES,            // type
-      STR_DUTY_CYCLE,           // name
-      &valDutyCycle,            // val
-      1,                        // step
-      0,                        // min
-      PROT_DUTY_CYCLE_SIZE - 1, // max
-      propDutyCycleTxt,         // text array for options
-      true,                     // no dynamic changes
-      handleChangeDutyCycle,    // change prop function
-      { handleGetDutyCycle }    // propGetter
-    },
+        {PARAM_CHOICES,            // type
+         STR_DUTY_CYCLE,           // name
+         &valDutyCycle,            // val
+         1,                        // step
+         0,                        // min
+         PROT_DUTY_CYCLE_SIZE - 1, // max
+         propDutyCycleTxt,         // text array for options
+         true,                     // no dynamic changes
+         handleChangeDutyCycle,    // change prop function
+         {handleGetDutyCycle}      // propGetter
+        },
 
-    { PARAM_INT,                // type
-      STR_PAUSE,                // name
-      &valPause,                // val
-      50,                       // step
-      0,                        // min
-      2000,                     // max
-      0,                        // text array for options
-      true,                     // no dynamic changes
-      handleChangePause,        // change prop function
-      { handleGetPause }        // propGetter
-    },
+        {PARAM_INT,                // type
+         STR_PAUSE,                // name
+         &valPause,                // val
+         50,                       // step
+         0,                        // min
+         2000,                     // max
+         0,                        // text array for options
+         true,                     // no dynamic changes
+         handleChangePause,        // change prop function
+         {handleGetPause}          // propGetter
+        },
 
-    {  PARAM_TEXT_GETTER,       // type
-      STR_PRESSURE,             // name
-      0,                        // val
-      1,                        // step
-      0,                        // min
-      1,                        // max
-      0,                        // text array for options
-      false,                    // no dynamic changes
-      0,  // change prop function
-      { (propgetfunc_t) getPressure } // despite this is a txtGetter (note that this is a PARAM_TEXT_GETTER)
-                                      // different compilers have particular syntax in how to set union. Casting
-                                      // with the first function prototype works for all. Hack but better than add lots of #ifdef's
+        {PARAM_TEXT_GETTER,        // type
+         STR_PRESSURE,             // name
+         0,                        // val
+         1,                        // step
+         0,                        // min
+         1,                        // max
+         0,                        // text array for options
+         false,                    // no dynamic changes
+         0,  // change prop function
+         {(propgetfunc_t) getPressure} // despite this is a txtGetter (note that this is a PARAM_TEXT_GETTER)
+                // different compilers have particular syntax in how to set union. Casting
+                // with the first function prototype works for all. Hack but better than add lots of #ifdef's
 
-    },
+        },
 
-    {  PARAM_TEXT_GETTER,       // type
-      STR_FLOW,                 // name
-      0,                        // val
-      1,                        // step
-      0,                        // min
-      1,                        // max
-      0,                        // text array for options
-      false,                    // no dynamic changes
-      0,  // change prop function
-      { (propgetfunc_t) getFlow } // despite this is a txtGetter (note that this is a PARAM_TEXT_GETTER)
-                                      // different compilers have particular syntax in how to set union. Casting
-                                      // with the first function prototype works for all. Hack but better than add lots of #ifdef's
+        {PARAM_TEXT_GETTER,        // type
+         STR_FLOW,                 // name
+         0,                        // val
+         1,                        // step
+         0,                        // min
+         1,                        // max
+         0,                        // text array for options
+         false,                    // no dynamic changes
+         0,  // change prop function
+         {(propgetfunc_t) getFlow} // despite this is a txtGetter (note that this is a PARAM_TEXT_GETTER)
+                // different compilers have particular syntax in how to set union. Casting
+                // with the first function prototype works for all. Hack but better than add lots of #ifdef's
 
-    },
+        },
 
-    {  PARAM_TEXT_GETTER,       // type
-      STR_TIDAL,                // name
-      0,                        // val
-      1,                        // step
-      0,                        // min
-      1,                        // max
-      0,                        // text array for options
-      false,                    // no dynamic changes
-      0,  // change prop function
-      { (propgetfunc_t) getTidalVolume } // despite this is a txtGetter (note that this is a PARAM_TEXT_GETTER)
-                                      // different compilers have particular syntax in how to set union. Casting
-                                      // with the first function prototype works for all. Hack but better than add lots of #ifdef's
+        {PARAM_TEXT_GETTER,        // type
+         STR_TIDAL,                // name
+         0,                        // val
+         1,                        // step
+         0,                        // min
+         1,                        // max
+         0,                        // text array for options
+         false,                    // no dynamic changes
+         0,  // change prop function
+         {(propgetfunc_t) getTidalVolume} // despite this is a txtGetter (note that this is a PARAM_TEXT_GETTER)
+                // different compilers have particular syntax in how to set union. Casting
+                // with the first function prototype works for all. Hack but better than add lots of #ifdef's
 
-    },
+        },
 
-    { PARAM_INT,                // type
-      STR_PEEP,         // name
-      &valDesiredPeep,          // val
-      1,                        // step
-      1,                        // min
-      25,                       // max
-      0,                        // text array for options
-      true,                     // no dynamic changes
-      handleChangeDesiredPeep,  // change prop function
-      { handleGetDesiredPeep }  // propGetter
-    },
+        {PARAM_INT,                // type
+         STR_PEEP,                 // name
+         &valDesiredPeep,          // val
+         1,                        // step
+         1,                        // min
+         25,                       // max
+         0,                        // text array for options
+         true,                     // no dynamic changes
+         handleChangeDesiredPeep,  // change prop function
+         {handleGetDesiredPeep}    // propGetter
+        },
 
-    { PARAM_INT,                // type
-      STR_LOW_PRESSURE,         // name
-      &valLowPressure,          // val
-      1,                        // step
-      1,                        // min
-      15,                       // max
-      0,                        // text array for options
-      true,                     // no dynamic changes
-      handleChangeLowPressure,  // change prop function
-      { handleGetLowPressure }  // propGetter
-    },
+        {PARAM_INT,                // type
+         STR_LOW_PRESSURE,         // name
+         &valLowPressure,          // val
+         1,                        // step
+         1,                        // min
+         15,                       // max
+         0,                        // text array for options
+         true,                     // no dynamic changes
+         handleChangeLowPressure,  // change prop function
+         {handleGetLowPressure}    // propGetter
+        },
 
-    { PARAM_INT,                // type
-      STR_HIGH_PRESSURE,        // name
-      &valHighPressure,         // val
-      2,                        // step
-      10,                       // min
-      40,                       // max
-      0,                        // text array for options
-      true,                     // no dynamic changes
-      handleChangeHighPressure,  // change prop function
-      { handleGetHighPressure }  // propGetter
-    },
+        {PARAM_INT,                // type
+         STR_HIGH_PRESSURE,        // name
+         &valHighPressure,         // val
+         2,                        // step
+         10,                       // min
+         40,                       // max
+         0,                        // text array for options
+         true,                     // no dynamic changes
+         handleChangeHighPressure, // change prop function
+         {handleGetHighPressure}   // propGetter
+        },
 
-    { PARAM_INT,                // type
-      STR_LOW_TIDAL,            // name
-      &valLowTidal,             // val
-      100,                      // step
-      0,                        // min
-      1400,                     // max
-      0,                        // text array for options
-      true,                     // no dynamic changes
-      handleChangeLowTidal,     // change prop function
-      { handleGetLowTidal }     // propGetter
-    },
+        {PARAM_INT,                // type
+         STR_LOW_TIDAL,            // name
+         &valLowTidal,             // val
+         100,                      // step
+         0,                        // min
+         1400,                     // max
+         0,                        // text array for options
+         true,                     // no dynamic changes
+         handleChangeLowTidal,     // change prop function
+         {handleGetLowTidal}       // propGetter
+        },
 
-    { PARAM_INT,                // type
-      STR_HIGH_TIDAL,           // name
-      &valHighTidal,            // val
-      100,                      // step
-      0,                        // min
-      1400,                     // max
-      0,                        // text array for options
-      true,                     // no dynamic changes
-      handleChangeHighTidal,    // change prop function
-      { handleGetHighTidal }    // propGetter
-    },
+        {PARAM_INT,                // type
+         STR_HIGH_TIDAL,           // name
+         &valHighTidal,            // val
+         100,                      // step
+         0,                        // min
+         1400,                     // max
+         0,                        // text array for options
+         true,                     // no dynamic changes
+         handleChangeHighTidal,    // change prop function
+         {handleGetHighTidal}      // propGetter
+        },
 
-    // *******************************************
-    // NOTE: THIS MUST BE THE VERY LAST PARAMETER
-    // *******************************************
-    { PARAM_CHOICES,            // type
-      STR_CALIB_PRESSURES,      // name
-      &valCalibration,          // val
-      1,                        // step
-      0,                        // min
-      1,                        // max
-      onOffTxt ,                // text array for options
-      false,                    // no dynamic changes
-      handleChangeCalibration,  // change prop function
-      0,        // propGetter
-    },
-
+        // *******************************************
+        // NOTE: THIS MUST BE THE VERY LAST PARAMETER
+        // *******************************************
+        {PARAM_CHOICES,            // type
+         STR_CALIB_PRESSURES,      // name
+         &valCalibration,          // val
+         1,                        // step
+         0,                        // min
+         1,                        // max
+         onOffTxt,                 // text array for options
+         false,                    // no dynamic changes
+         handleChangeCalibration,  // change prop function
+         0,        // propGetter
+        },
 };
 
 #define NUM_PARAMS (sizeof(params)/sizeof(params_t))
@@ -475,10 +465,10 @@ static const char * yesNoTxt[] = {
 params_t * loadParamRecord(int idx) {
     static params_t par;
     int i;
-    uint8_t * srcPtr = (uint8_t *) &params[idx];
-    uint8_t * dstPtr = (uint8_t *) &par;
+    uint8_t *srcPtr = (uint8_t *) &params[idx];
+    uint8_t *dstPtr = (uint8_t *) &par;
 
-    for (i=0; i<sizeof(params_t); i++) {
+    for (i = 0; i < sizeof(params_t); i++) {
         *dstPtr = pgm_read_byte_near(srcPtr);
         srcPtr++;
         dstPtr++;
@@ -494,105 +484,96 @@ params_t * loadParamRecord(int idx) {
 #endif
 
 static void handleChangeCalibration(int val) {
-  breatherRequestFastCalibration();
-  params_t * par = loadParamRecord(NUM_PARAMS - 1);
-  *par->val = 0; // reset val
+    breatherRequestFastCalibration();
+    params_t *par = loadParamRecord(NUM_PARAMS - 1);
+    *par->val = 0; // reset val
 }
 
-
 //------------ Global -----------
-CUiNative::CUiNative()
-{
-    params_idx = 0;
-    ui_state = SHOW_MODE;
-    check_set_hold = false;
-    check_decrement_hold = false;
-    shortcut_to_top_done = false;
-    ignore_release = 0;
-    state_idx = STATE_IDLE;
-    blink_mask = 0;
-    blink_phase = 0;
-    alarm_mode = false;
-    bps = 10;
+CUiNative::CUiNative() {
+    paramsIndex = 0;
+    uiState = SHOW_MODE;
+    checkSetHold = false;
+    checkDecrementHold = false;
+    shortcutToTopDone = false;
+    ignoreRelease = 0;
+    stateIndex = STATE_IDLE;
+    blinkMask = 0;
+    blinkPhase = 0;
+    alarmMode = false;
+    bpm = 10;
     dutyCycle = 0.1f;
 
     initParams();
-    tm_blink = halStartTimerRef();
+    blinkTimer = halStartTimerRef();
     updateStatus(false);
     updateParams();
 }
 
-CUiNative::~CUiNative()
-{
+CUiNative::~CUiNative() {
 
 }
 
-void CUiNative::initParams()
-{
-  unsigned int i;
-  params_t * par;
-  for (i=0; i<NUM_PARAMS; i++) {
-    par = loadParamRecord(i);
-    if (par->type == PARAM_TEXT_GETTER) continue;
-    if (par->getter.propGetter) {
-      *par->val = par->getter.propGetter();
+void CUiNative::initParams() {
+    unsigned int i;
+    params_t *par;
+    for (i = 0; i < NUM_PARAMS; i++) {
+        par = loadParamRecord(i);
+        if (par->type == PARAM_TEXT_GETTER) continue;
+        if (par->getter.propGetter) {
+            *par->val = par->getter.propGetter();
+        }
     }
-  }
 
-  if (propGetVent()) {
-      state_idx = STATE_RUN;
-  }
-  else {
-      state_idx = STATE_IDLE;
-  }
+    if (propGetVent()) {
+        stateIndex = STATE_RUN;
+    } else {
+        stateIndex = STATE_IDLE;
+    }
 }
 
-void CUiNative::fillValBuf(char * buf, int idx)
-{
-    params_t * par = loadParamRecord(idx);
+void CUiNative::fillValBuf(char * buf, int index) {
+    params_t *par = loadParamRecord(index);
 
     if (par->type == PARAM_INT)
         sprintf(buf, "%5d", *par->val);
     else if (par->type == PARAM_CHOICES)
-        strcpy(buf, par->options[ *par->val ]);
+        strcpy(buf, par->options[*par->val]);
     else if (par->type == PARAM_TEXT_GETTER)
         sprintf(buf, "%s", par->getter.txtGetter());
     else
         LOG("blinker: Unexpected type");
 }
 
-
-void CUiNative::loop()
-{
+void CUiNative::loop() {
     checkFuncHold();
     blinker();
     updateProgress();
 }
 
-void CUiNative::blinker()
-{   
+void CUiNative::blinker() {
     char buf[(LCD_NUM_COLS - PARAM_VAL_START_COL) + 1];
     int len = LCD_NUM_COLS - PARAM_VAL_START_COL;
     memset(buf, 0x20, (size_t) len); // spaces
     buf[len] = 0; // NULL terminate
 
-    if (halCheckTimerExpired(tm_blink, TM_BLINK)) {
-        tm_blink = halStartTimerRef();
+    if (halCheckTimerExpired(blinkTimer, TM_BLINK)) {
+        blinkTimer = halStartTimerRef();
 
-//        if (blink_mask == 0) return;
+//        if (blinkMask == 0) return;
 
-        blink_phase++;
-        blink_phase &= 1;
+        blinkPhase++;
+        blinkPhase &= 1;
 
         //-------- paramater Blinking ------------
-        if (blink_mask & BLINK_PARAMETER_VAL) {
-            if (blink_phase) {
-                fillValBuf(buf, params_idx);
+        if (blinkMask & BLINK_PARAMETER_VAL) {
+            if (blinkPhase) {
+                fillValBuf(buf, paramsIndex);
             }
             halLcdWrite(PARAM_VAL_START_COL, LCD_PARAMS_FIRST_ROW, buf);
         }
 
-        //-------- other Blinking... ------------
+            //-------- other Blinking... ------------
 
 
         else {
@@ -600,24 +581,17 @@ void CUiNative::blinker()
         }
 
         //---------- Alarm blink ------------
-        if (alarm_mode == true) {
-            if (blink_phase) {
-                updateStatus(true);
-            }
-            else {
-                updateStatus(false);
-            }
+        if (alarmMode) {
+            updateStatus(blinkPhase != 0);
         }
-
     }
 }
 
-void CUiNative::refreshValue(bool force)
-{
+void CUiNative::refreshValue(bool force) {
     char buf[(LCD_NUM_COLS - PARAM_VAL_START_COL) + 1];
     int len = LCD_NUM_COLS - PARAM_VAL_START_COL;
 
-    params_t * par = loadParamRecord(params_idx);
+    params_t *par = loadParamRecord(paramsIndex);
 
     if (par->quickUpdate || force) {
         if (par->handler) {
@@ -628,148 +602,135 @@ void CUiNative::refreshValue(bool force)
     memset(buf, 0x20, (size_t) len); // spaces
     buf[len] = 0; // NULL terminate
 
-    tm_blink = halStartTimerRef();
-    fillValBuf(buf, params_idx);
+    blinkTimer = halStartTimerRef();
+    fillValBuf(buf, paramsIndex);
     halLcdWrite(PARAM_VAL_START_COL, LCD_PARAMS_FIRST_ROW, buf);
 }
 
-void CUiNative::updateProgress()
-{
-    if (alarm_mode == true) return;
+void CUiNative::updateProgress() {
+    if (alarmMode) return;
 
     int i;
-    char buf[PROGRESS_NUM_CHARS+1];
-    memset(buf, 0x20, sizeof (buf)); // spaces
-    buf[sizeof (buf) - 1] = 0;
+    char buf[PROGRESS_NUM_CHARS + 1];
+    memset(buf, 0x20, sizeof(buf)); // spaces
+    buf[sizeof(buf) - 1] = 0;
 
-    //B_STATE_t s = breatherGetState();
-    int p = (breatherGetPropress() * PROGRESS_NUM_CHARS) / 90;
+    //breatherState_t s = breatherGetState();
+    int p = (breatherGetProgress() * PROGRESS_NUM_CHARS) / 90;
     if (p > PROGRESS_NUM_CHARS) p = PROGRESS_NUM_CHARS;
-    if (p == progress)
-        return;
+    if (p == progress) return;
 
     progress = p;
-    for(i=0; i<progress; i++) {
+    for (i = 0; i < progress; i++) {
         buf[i] = PROGRESS_CHARACTER;
     }
     halLcdWrite(PROGRESS_COL, PROGRESS_ROW, buf);
 }
 
-void CUiNative::updateParameterValue()
-{
+void CUiNative::updateParameterValue() {
 
 }
 
-void CUiNative::blinkOn(int mask)
-{
-    blink_mask |= mask;
+
+void CUiNative::blinkOn(int mask) {
+    blinkMask |= mask;
 }
 
-void CUiNative::blinkOff(int mask)
-{
-    blink_mask &= ~mask;
+void CUiNative::blinkOff(int mask) {
+    blinkMask &= ~mask;
     updateParams();
 }
 
-void CUiNative::updateParams()
-{
-  unsigned int idx = params_idx;
-  unsigned int i;
-  char buf[LCD_NUM_COLS+1];
-  params_t * par;
+void CUiNative::updateParams() {
+    unsigned int index = paramsIndex;
+    unsigned int i;
+    char buf[LCD_NUM_COLS + 1];
+    params_t *par;
 
+    for (i = 0; i < LCD_PARAMS_NUM_ROWS; i++) {
+        par = loadParamRecord(index);
+        memset(buf, 0x20, LCD_NUM_COLS);
+        buf[LCD_NUM_COLS] = 0;
+        if (i == 0) {
+            buf[0] = '>';
+        }
+        memcpy(&buf[1], par->name, strlen(par->name));
+        fillValBuf(&buf[PARAM_VAL_START_COL], index);
+        halLcdWrite(0, LCD_PARAMS_FIRST_ROW + i, buf);
 
-  for (i=0; i < LCD_PARAMS_NUM_ROWS; i++) {
-      par = loadParamRecord(idx);
-      memset(buf, 0x20, LCD_NUM_COLS);
-      buf[LCD_NUM_COLS] = 0;
-      if (i == 0) {
-        buf[0] = '>';
-      }
-      memcpy(&buf[1], par->name, strlen(par->name));
-      fillValBuf(&buf[PARAM_VAL_START_COL], idx);
-      halLcdWrite(0, LCD_PARAMS_FIRST_ROW + i, buf);
-
-      idx++;
-      if (idx >= NUM_PARAMS) idx = 0;
-  }
+        index++;
+        if (index >= NUM_PARAMS) index = 0;
+    }
 }
 
-void CUiNative::scroolParams( bool down)
-{
+void CUiNative::scroolParams( bool down) {
     if (down) {
-      params_idx++;
-      if ( params_idx >= (int) NUM_PARAMS)
-          params_idx = 0;
-    }
-    else {
-      params_idx--;
-      if (params_idx < 0)
-          params_idx = NUM_PARAMS - 1;
+        paramsIndex++;
+        if (paramsIndex >= (int) NUM_PARAMS)
+            paramsIndex = 0;
+    } else {
+        paramsIndex--;
+        if (paramsIndex < 0)
+            paramsIndex = NUM_PARAMS - 1;
     }
 
     updateParams();
 }
 
-void CUiNative::checkFuncHold()
-{
-    if (ui_state != SHOW_MODE) {
-        return;
-    }
+void CUiNative::checkFuncHold() {
+    if (uiState != SHOW_MODE) return;
 
     //-------- process KEY_SET hold ------
-    if (check_set_hold) {
-      if (halCheckTimerExpired(tm_set_hold, TM_FUNC_HOLD)) {
-        blinkOn(BLINK_PARAMETER_VAL);
-        LOG("** ENTER mode");
-        ui_state = ENTER_MODE;
-      }
+    if (checkSetHold) {
+        if (halCheckTimerExpired(timerSetHold, TM_FUNC_HOLD)) {
+            blinkOn(BLINK_PARAMETER_VAL);
+            LOG("** ENTER mode");
+            uiState = ENTER_MODE;
+        }
     }
 
     //-------- process KEY_DECREMENT hold ------
-    if (check_decrement_hold && (shortcut_to_top_done == false) ) {
-      if (halCheckTimerExpired(tm_decrement_hold, TM_FUNC_HOLD)) {
-        params_idx = -1;
-        scroolParams(true);
-        shortcut_to_top_done = true;
-      }
+    if (checkDecrementHold && !shortcutToTopDone) {
+        if (halCheckTimerExpired(timerDecrementHold, TM_FUNC_HOLD)) {
+            paramsIndex = -1;
+            scroolParams(true);
+            shortcutToTopDone = true;
+        }
     }
 }
 
-propagate_t CUiNative::onEvent(event_t * event)
-{
+propagate_t CUiNative::onEvent(event_t * event) {
     //char b[64];
     //sprintf(b, "onEvent: type = %d, key = %d\n", event->type, event->iParam);
     //LOG( (char *) b);
 
     if (event->type == EVT_ALARM_DISPLAY_ON) {
-        alarm_mode = true;
-        strcpy(alarm_msg, event->param.tParam);
+        alarmMode = true;
+        strcpy(alarmMessage, event->param.tParam);
         return PROPAGATE_STOP;
     }
 
-    if (event->type == EVT_ALARM_DISPLAY_OFF) {
-        alarm_mode = false;
+    if (event->type == EVENT_ALARM_DISPLAY_OFF) {
+        alarmMode = false;
         updateStatus(false);
         return PROPAGATE_STOP;
     }
 
     //============== SHOW Mode =============
-    if (ui_state == SHOW_MODE) {
+    if (uiState == SHOW_MODE) {
 
         //--------- SET Key -------------
-        if (event->param.iParam == KEY_SET)  {
-            if (event->type == EVT_KEY_RELEASE)  {
-                if (ignore_release) {
-                    ignore_release--;
+        if (event->param.iParam == KEY_SET) {
+            if (event->type == EVENT_KEY_RELEASE) {
+                if (ignoreRelease) {
+                    ignoreRelease--;
                     return PROPAGATE;
                 }
                 // scroolParams(true);
-                check_set_hold = false;
-            }
-            else if (event->type == EVT_KEY_PRESS) {
-                tm_set_hold = halStartTimerRef();
-                check_set_hold = true;
+                checkSetHold = false;
+            } else if (event->type == EVENT_KEY_PRESS) {
+                timerSetHold = halStartTimerRef();
+                checkSetHold = true;
 #ifdef TEST_WDT
                 // test WDT
                 delay(2000); // triggers reset via WDT
@@ -779,50 +740,49 @@ propagate_t CUiNative::onEvent(event_t * event)
 
         //------------- Decrement key --------------
         if (event->param.iParam == KEY_DECREMENT) {
-            if (event->type == EVT_KEY_PRESS)  {
-              scroolParams(false);
-              tm_decrement_hold = halStartTimerRef();
-              check_decrement_hold = true;
-            }
-            else {
-                check_decrement_hold = false;
-                shortcut_to_top_done = false;
+            if (event->type == EVENT_KEY_PRESS) {
+                scroolParams(false);
+                timerDecrementHold = halStartTimerRef();
+                checkDecrementHold = true;
+            } else {
+                checkDecrementHold = false;
+                shortcutToTopDone = false;
             }
         }
 
         //------------- increment key --------------
-        if (event->param.iParam == KEY_INCREMENT && event->type == EVT_KEY_PRESS)  {
+        if (event->param.iParam == KEY_INCREMENT && event->type == EVENT_KEY_PRESS) {
             scroolParams(true);
         }
     }
 
-    //============== ENTER Mode =============
-    else if (ui_state == ENTER_MODE) {
+        //============== ENTER Mode =============
+    else if (uiState == ENTER_MODE) {
 
         //--------- Function Key -------------
-        if (event->param.iParam == KEY_SET && event->type == EVT_KEY_PRESS)  {
+        if (event->param.iParam == KEY_SET && event->type == EVENT_KEY_PRESS) {
             blinkOff(BLINK_PARAMETER_VAL);
             LOG("** SHOW mode");
-            ui_state = SHOW_MODE;
-            check_set_hold = false;
-            ignore_release = 1;
+            uiState = SHOW_MODE;
+            checkSetHold = false;
+            ignoreRelease = 1;
             refreshValue(true);
         }
 
-        params_t * par = loadParamRecord(params_idx);
+        params_t *par = loadParamRecord(paramsIndex);
 
         //------- Right (UP) Key
-        if (event->param.iParam == KEY_INCREMENT && event->type == EVT_KEY_PRESS)  {
-          if (*par->val < par->max) {
-              *par->val += par->step;
-              refreshValue(false);
-          }
+        if (event->param.iParam == KEY_INCREMENT && event->type == EVENT_KEY_PRESS) {
+            if (*par->val < par->max) {
+                *par->val += par->step;
+                refreshValue(false);
+            }
         }
-        if (event->param.iParam == KEY_DECREMENT && event->type == EVT_KEY_PRESS)  {
-          if (*par->val > par->min) {
-              *par->val -= par->step;
-              refreshValue(false);
-          }
+        if (event->param.iParam == KEY_DECREMENT && event->type == EVENT_KEY_PRESS) {
+            if (*par->val > par->min) {
+                *par->val -= par->step;
+                refreshValue(false);
+            }
         }
     }
 

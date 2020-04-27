@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="ArduinoVent"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ArduinoVent">
+				<Option output="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/ArduinoVent" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/."/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 ArduinoVent"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="ArduinoVent/fast">
+				<Option output="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/ArduinoVent" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/."/>
+					<Add directory="/usr/include/c++/9"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/9"/>
+					<Add directory="/usr/include/c++/9/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/9/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 ArduinoVent/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/ArduinoVent.ino">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/BME280_mv.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/BME280_mv.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/LcdMv.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/LcdMv.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/LiquidCrystal_I2C_mv.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/LiquidCrystal_I2C_mv.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/alarm.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/alarm.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/bmp280_int.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/bmp280_int.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/breather.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/breather.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/breatherMotor.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/config.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/crc.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/crc.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/event.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/event.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/hal.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/hal.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/languages.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/log.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/log.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/motor.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/motor.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/pressure.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/pressure.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/properties.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/properties.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/sSense-BMx280I2C_mv.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/sSense-BMx280I2C_mv.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/serialWriter.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/serialWriter.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/toyotaMafSensor.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/toyotaMafSensor.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/ui_native.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/ui_native.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/vent.cpp">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/vent.h">
+			<Option target="ArduinoVent"/>
+		</Unit>
+		<Unit filename="/home/cesar-cardoso/Open_Source_Ventilator/ControllerSourceCode/ArduinoVent/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

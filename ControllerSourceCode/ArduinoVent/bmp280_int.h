@@ -41,7 +41,6 @@
 #define BMP_ST__NOT_FOUND      -200.0f  /**< Special returning value: could not get initialized */ 
 #define BMP_ST__READ_ERROR     -300.0f  /**< Special returning value: was initialized but fail to read */
 
-
 /**
  * @brief Initiialize the BMP280 related components.
  *

@@ -33,31 +33,29 @@
 #include "bmp280_int.h"
 
 //------------ Global -----------
-void ventLoop()
-{
-  halLoop();
-  evtDispatchAll();
-  uiNativeLoop();
-  breatherLoop();
-   
+void ventLoop() {
+    halLoop();
+    eventDispatchAll();
+    uiNativeLoop();
+    breatherLoop();
+
 #ifdef STEPPER_MOTOR_STEP_PIN
-  motorLoop();
+    motorLoop();
 #endif
 }
 
-void ventSetup()
-{
-  alarmInit();     // must be called before uiNativeInit
-  uiNativeInit();
-  
+void ventSetup() {
+    alarmInit();     // must be called before uiNativeInit
+    uiNativeInit();
+
 #ifdef STEPPER_MOTOR_STEP_PIN
-  motorInit();
+    motorInit();
 #endif
 
 #ifndef VENTSIM
-  #if (USE_BMP280_PRESSURE_SENSOR == 1)
+#if (USE_BMP280_PRESSURE_SENSOR == 1)
     bpm280Init();
-  #endif
+#endif
 #endif
 }
  

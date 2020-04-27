@@ -34,10 +34,9 @@
 #define I2C_ADDRESS 0x76 // SDO pin must be left high. Otherwise, if SDO grounded, address is 0x76
 
 #define TM_LOG 2000
-#define TM_INIT_RETRY 200
-#define TM_READ_MIN_PERIOD  50 // max rate to query BMP is 50ms (read takes about 2 ms)... 
+#define TIME_INIT_RETRY 200
+#define TIME_READ_MIN_PERIOD  50 // max rate to query BMP is 50ms (read takes about 2 ms)...
                                // we will create a state machine to read in multiple calls and no blocks whatsoever.
-
 
 #ifdef SHOW_PREESURE_LOGS
   static uint64_t logTimer;
@@ -54,7 +53,7 @@ static BMx280I2C::Settings settings(
    I2C_ADDRESS // I2C address. I2C specific -- this is for the Adafruit with other lines not connected
 );
 
-static uint64_t tm;
+static uint64_t timer;
 static uint8_t state; // 0~3 starting... 4 is error... >=10 is OK
 
 static float fPressurePa;
@@ -67,86 +66,87 @@ static float gaugeCmH2O;
   
 static BMx280I2C ssenseBMx280(settings);
 
+/* ensures that we're ready to measure pressure */
 static void checkInit() {
-  if (state >= 4) return; // error or OK
-  
-  if ( halCheckTimerExpired(tm, TM_INIT_RETRY) ) {
-    if (ssenseBMx280.begin()) {
-      LOGV("Model 0x%x", ssenseBMx280.chipModel() );
+    if (state >= 4) return; // error or OK
 
-      // prerform a first read for reference
-      ssenseBMx280.readPressure(fPressurePa); // TODO: protect this method in the library
-      bmp280SetReference();
-      
-      tm = halStartTimerRef();
-      state = 10; // init is completed
-      return;
+    if (halCheckTimerExpired(timer, TIME_INIT_RETRY)) {
+        if (ssenseBMx280.begin()) {
+            LOGV("Model 0x%x", ssenseBMx280.chipModel());
+
+            // prerform a first read for reference
+            ssenseBMx280.readPressure(fPressurePa); // TODO: protect this method in the library
+            bmp280SetReference();
+
+            timer = halStartTimerRef();
+            state = 10; // init is completed
+            return;
+        }
+        state++;
+        if (state == 4) {
+            CEvent::post(EVENT_ALARM, ALARM_INDEX_BAD_PRESS_SENSOR);
+        }
+        timer = halStartTimerRef();
     }
-    state++;
-    if (state == 4) {
-      CEvent::post(EVT_ALARM, ALARM_IDX_BAD_PRESS_SENSOR);
-    }
-    tm = halStartTimerRef();
-  }
 }
 
+/* measures pressure */
 float bpm280GetPressure() {
-  
-  checkInit();
-  if (state < 4) return BMP_ST__INITIALIZING; // error or OK 
-  if (state == 4) return BMP_ST__NOT_FOUND; // error or OK
+    checkInit();
+    if (state < 4) return BMP_ST__INITIALIZING; // error or OK
+    if (state == 4) return BMP_ST__NOT_FOUND; // error or OK
 
-  if ( halCheckTimerExpired(tm, TM_READ_MIN_PERIOD) ) {
-    tm = halStartTimerRef();
-    ssenseBMx280.readPressure(fPressurePa);
-    gaugeCmH2O = (fPressurePa - fReferencePa) * 0.0101972;
-
-  }
+    if (halCheckTimerExpired(timer, TIME_READ_MIN_PERIOD)) {
+        timer = halStartTimerRef();
+        ssenseBMx280.readPressure(fPressurePa);
+        gaugeCmH2O = (fPressurePa - fReferencePa) * 0.0101972;
+    }
 
 #ifdef SHOW_PREESURE_LOGS
-  if (halCheckTimerExpired(logTimer, TM_LOG)) {
+    if (halCheckTimerExpired(logTimer, TM_LOG)) {
 
-    dtostrf(fPressurePa, 2, 2, buf);
-    buf[sizeof(buf) - 1] = 0;
-    LOGV("fPressurePa = %s", buf); // this is how to log variable format like printf
+        dtostrf(fPressurePa, 2, 2, buf);
+        buf[sizeof(buf) - 1] = 0;
+        LOGV("fPressurePa = %s", buf); // this is how to log variable format like printf
 
-    dtostrf(fReferencePa, 2, 2, buf);
-    buf[sizeof(buf) - 1] = 0;
-    LOGV("fReferencePa = %s", buf); // this is how to log variable format like printf
+        dtostrf(fReferencePa, 2, 2, buf);
+        buf[sizeof(buf) - 1] = 0;
+        LOGV("fReferencePa = %s", buf); // this is how to log variable format like printf
 
-    float f = getCmH2OGauge();
-    dtostrf(f, 2, 2, buf);
-    buf[sizeof(buf) - 1] = 0;
-    LOGV("Gauge = %s\n", buf); // this is how to log variable format like printf
-    
-    logTimer = halStartTimerRef();
-  }
+        float f = getCmH2OGauge();
+        dtostrf(f, 2, 2, buf);
+        buf[sizeof(buf) - 1] = 0;
+        LOGV("Gauge = %s\n", buf); // this is how to log variable format like printf
+
+        logTimer = halStartTimerRef();
+    }
 #endif
 
-  return fPressurePa;
-  
+    return fPressurePa;
 }
 
+/* set pressure reference to current pressure */
 void bmp280SetReference()
 {
   LOG("Set Press Ref.");
   fReferencePa = fPressurePa;
 }
 
+/* get method for gaugeCmH2O */
 float getCmH2OGauge()
 {
   return gaugeCmH2O;
 }
 
-void bpm280Init()
-{
-  Wire.begin();
+/* start measuring pressure */
+void bpm280Init() {
+    Wire.begin();
 
-  tm = halStartTimerRef(); 
-  checkInit();
+    timer = halStartTimerRef();
+    checkInit();
 
 #ifdef SHOW_PREESURE_LOGS
-  logTimer = halStartTimerRef();
+    logTimer = halStartTimerRef();
 #endif
 }
 

@@ -21,21 +21,20 @@
  **************************************************************
 */
 typedef enum {
-    B_ST_STOPPED,
-    B_ST_IN,
-    B_ST_WAIT_TO_OUT,
-    B_ST_OUT,
-    B_ST_INITIAL_FAST_CALIB,
-    B_ST_FAST_CALIB,
-    B_ST_PAUSE,
-    B_ST_STOPPING,
-} B_STATE_t;
+    BREATHER_STATE_STOPPED,
+    BREATHER_STATE_IN,
+    BREATHER_STATE_WAIT_TO_OUT,
+    BREATHER_STATE_OUT,
+    BREATHER_STATE_INITIAL_FAST_CALIBRATION,
+    BREATHER_STATE_FAST_CALIBRATION,
+    BREATHER_STATE_PAUSE,
+    BREATHER_STATE_STOPPING,
+} breatherState_t;
 
 void breatherLoop();
 void breatherStartCycle();
-B_STATE_t breatherGetState();
-int breatherGetPropress();
+breatherState_t breatherGetState();
+int breatherGetProgress();
 void breatherRequestFastCalibration();
-
 
 #endif // BREATHER_H

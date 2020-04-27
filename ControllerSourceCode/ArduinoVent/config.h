@@ -76,10 +76,6 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 #define       TX_PIN          18
 #define       RX_PIN          19
 
-
-
-
-
 /*
                 ***********************************************
                 *                                             *
@@ -323,7 +319,7 @@ enum {A0, A1, A2, A3, A4, A5, A6, A7};
 */
 
 #define  DEFAULT_VENT            0
-#define  DEFAULT_BPS             15
+#define  DEFAULT_BPM             15
 #define  DEFAULT_DUTY_CYCLE      0
 #define  DEFAULT_PAUSE           100
 #define  DEFAULT_LCD_AUTO_OFF    0

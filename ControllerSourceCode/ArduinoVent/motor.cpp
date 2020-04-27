@@ -19,7 +19,6 @@
  **************************************************************
 */
 
-
 #include "config.h"
 #include "hal.h"
 #include "log.h"
@@ -27,7 +26,6 @@
 #include "alarm.h"
 
 #ifdef STEPPER_MOTOR_STEP_PIN
-
 
 /*
 
@@ -74,23 +72,23 @@ This code is using bit-bang to generate pulses
 //     - move back P_END - P_START steps and declare this final position as P_START.
 
 typedef enum {
-  ST_INIT,
-  ST_INIT_MOVING_TO_END,
-  ST_INIT_MOVING_OUT_OF_END,
-  ST_INIT_MOVING_TO_START,
-  
-  ST_AIR_IN,
-  ST_AIR_IN_PAUSE,
-  ST_AIR_OUT,
-  ST_AIR_OUT_PAUSE,
-  ST_STOPPED,
-  
-  ST_ERROR
+    STATE_INIT,
+    STATE_INIT_MOVING_TO_END,
+    STATE_INIT_MOVING_OUT_OF_END,
+    STATE_INIT_MOVING_TO_START,
+
+    STATE_AIR_IN,
+    STATE_AIR_IN_PAUSE,
+    STATE_AIR_OUT,
+    STATE_AIR_OUT_PAUSE,
+    STATE_STOPPED,
+
+    STATE_ERROR
 } state_t;
 
 typedef enum {
-  FWD,
-  BWD
+    FWD,
+    BWD
 } dir_t;
 
 static uint16_t   speed; // in steps per second
@@ -103,188 +101,190 @@ static dir_t      direction;
 static uint32_t   stepCounter;
 static uint32_t   progress;
 
-
-
 static void updateMicroFreeRunningTimer();
 
 //
 
 //------------- Finite State Machine -----------
 
-static void fsmSt_INIT()
-{
-  stepCounter = P_END;
-  halMotorDir(FWD);
-  state = ST_INIT_MOVING_TO_END;
-}
-
-static void fsmSt_INIT_MOVING_TO_END()
-{
-  if (stepCounter == 0) {
-    halMotorDir(BWD);
+static void fsmSt_INIT() {
     stepCounter = P_END;
-    state = ST_INIT_MOVING_OUT_OF_END;
-  }
-  
+    halMotorDir(FWD);
+    state = STATE_INIT_MOVING_TO_END;
 }
 
-static void fsmSt_INIT_MOVING_OUT_OF_END()
-{
-  
+static void fsmSt_INIT_MOVING_TO_END() {
+    if (stepCounter == 0) {
+        halMotorDir(BWD);
+        stepCounter = P_END;
+        state = STATE_INIT_MOVING_OUT_OF_END;
+    }
 }
 
-static void fsmSt_INIT_MOVING_TO_START()
-{
-  
+static void fsmSt_INIT_MOVING_OUT_OF_END() {
+
+}
+
+static void fsmSt_INIT_MOVING_TO_START() {
+
 }
  
-static void fsmSt_AIR_IN()
-{
-  
+static void fsmSt_AIR_IN() {
+
 }
 
-static void fsmSt_AIR_IN_PAUSE()
-{
-  
+static void fsmSt_AIR_IN_PAUSE() {
+
 }
 
+static void fsmSt_AIR_OUT() {
 
-static void fsmSt_AIR_OUT()
-{
-  
 }
 
+static void fsmSt_AIR_OUT_PAUSE() {
 
-static void fsmSt_AIR_OUT_PAUSE()
-{
-  
 }
 
+static void fsmSt_STOPPED() {
 
-static void fsmSt_STOPPED()
-{
-  
 }
-
-
   
-static void fsmSt_ERROR()
-{
-  
+static void fsmSt_ERROR() {
+
 }
 
 //---------------- Global functions ----------------
-void motorInit()
-{
-  state = ST_AIR_IN_PAUSE; // ST_INIT;
-  microTimerRef = halStartTimerRef();
+void motorInit() {
+    state = STATE_AIR_IN_PAUSE; // STATE_INIT;
+    microTimerRef = halStartTimerRef();
 }
 
-void motorLoop()
-{
-  static int lastProrgress = 0;
-  
-  switch (state) {
-    case ST_INIT:                   fsmSt_INIT();                   break;
-    case ST_INIT_MOVING_TO_END:     fsmSt_INIT_MOVING_TO_END();     break;
-    case ST_INIT_MOVING_OUT_OF_END: fsmSt_INIT_MOVING_OUT_OF_END(); break;
-    case ST_INIT_MOVING_TO_START:   fsmSt_INIT_MOVING_TO_START();   break;
-    case ST_AIR_IN:                 fsmSt_AIR_IN();                 break;
-    case ST_AIR_IN_PAUSE:           fsmSt_AIR_IN_PAUSE();           break;
-    case ST_AIR_OUT:                fsmSt_AIR_OUT();                break;
-    case ST_AIR_OUT_PAUSE:          fsmSt_AIR_OUT_PAUSE();          break;
-    case ST_STOPPED:                fsmSt_STOPPED();                break;
-    case ST_ERROR:                  fsmSt_ERROR();                  break;
-    default: return;
+void motorLoop() {
+    static int lastProgress = 0;
 
-  }
-  
-  if (stepCounter == 0) return;
-  //--------- may move motor if stepCounter > 0 --------
-  if (phase == 0) {
-    //halMotorStep (true);      // Step PIN high
-    microTimerRef = halStartMicroTimerRef();
-    phase++;
-    return;
-  }
-  if (phase == 1) {
-    if (halCheckMicroTimerExpired(microTimerRef, step_periodo/10)) {
-      halMotorStep (true);      // Step PIN high
-      phase++;
-    }
-    return;
-  }
+    switch (state) {
+        case STATE_INIT:
+            fsmSt_INIT();
+            break;
 
-  if (phase == 2) {
-    if (halCheckMicroTimerExpired(microTimerRef, step_periodo/2)) {
-      halMotorStep (false);      // Step PIN low
-      phase++;
-    }
-    return;
-  }
-  if (phase == 3) {
-    if (halCheckMicroTimerExpired(microTimerRef, step_periodo)) {
-      stepCounter--;
-      phase = 0;
+        case STATE_INIT_MOVING_TO_END:
+            fsmSt_INIT_MOVING_TO_END();
+            break;
 
-      if (stepCounter == 0) {
-        progress = 100;
-      }
-      else {
-        progress = 100 - (stepCounter * 100)/ P_END;
-        if (progress >= 100) progress = 99;
-        if (progress < 0) progress = 0;
-        
-      }
-      if (lastProrgress != progress) {
-        lastProrgress = progress;
-        //LOGV("%d", progress);;
-      }
+        case STATE_INIT_MOVING_OUT_OF_END:
+            fsmSt_INIT_MOVING_OUT_OF_END();
+            break;
+
+        case STATE_INIT_MOVING_TO_START:
+            fsmSt_INIT_MOVING_TO_START();
+            break;
+
+        case STATE_AIR_IN:
+            fsmSt_AIR_IN();
+            break;
+
+        case STATE_AIR_IN_PAUSE:
+            fsmSt_AIR_IN_PAUSE();
+            break;
+
+        case STATE_AIR_OUT:
+            fsmSt_AIR_OUT();
+            break;
+
+        case STATE_AIR_OUT_PAUSE:
+            fsmSt_AIR_OUT_PAUSE();
+            break;
+
+        case STATE_STOPPED:
+            fsmSt_STOPPED();
+            break;
+
+        case STATE_ERROR:
+            fsmSt_ERROR();
+            break;
+
+        default:
+            return;
     }
-  }  
+
+    if (stepCounter == 0) return;
+    //--------- may move motor if stepCounter > 0 --------
+    if (phase == 0) {
+        //halMotorStep (true);      // Step PIN high
+        microTimerRef = halStartMicroTimerRef();
+        phase++;
+        return;
+    }
+    if (phase == 1) {
+        if (halCheckMicroTimerExpired(microTimerRef, step_periodo / 10)) {
+            halMotorStep(true);      // Step PIN high
+            phase++;
+        }
+        return;
+    }
+
+    if (phase == 2) {
+        if (halCheckMicroTimerExpired(microTimerRef, step_periodo / 2)) {
+            halMotorStep(false);      // Step PIN low
+            phase++;
+        }
+        return;
+    }
+    if (phase == 3) {
+        if (halCheckMicroTimerExpired(microTimerRef, step_periodo)) {
+            stepCounter--;
+            phase = 0;
+
+            if (stepCounter == 0) {
+                progress = 100;
+            } else {
+                progress = 100 - (stepCounter * 100) / P_END;
+                if (progress >= 100) progress = 99;
+                if (progress < 0) progress = 0;
+
+            }
+            if (lastProgress != progress) {
+                lastProgress = progress;
+                //LOGV("%d", progress);;
+            }
+        }
+    }
 }
-
 
 static int getStepPeriod(uint32_t milli) {
-  int r = (milli * 1000) / P_END;
-  if (r < MIN_STEP_PERIOD) {
-    CEvent::post(EVT_ALARM, ALARM_IDX_UNDER_SPEED_MOTOR);
-    LOG("motor underspeed");
-    return MIN_STEP_PERIOD;
-  }
-  LOGV("Period = %d microsec", r);
-  return r;
+    int r = (milli * 1000) / P_END;
+    if (r < MIN_STEP_PERIOD) {
+        CEvent::post(EVENT_ALARM, ALARM_INDEX_UNDER_SPEED_MOTOR);
+        LOG("motor underspeed");
+        return MIN_STEP_PERIOD;
+    }
+    LOGV("Period = %d microsec", r);
+    return r;
 }
 
-void motorStartInspiration(int millisec)
-{
-  LOG(">> motorStartInspiration");
-  progress = 0;
-  direction = FWD;
-  halMotorDir(true);
-  step_periodo = getStepPeriod(millisec);
-  stepCounter = P_END;
-  microTimerRef = halStartMicroTimerRef();
-  
+void motorStartInspiration(int millisec) {
+    LOG(">> motorStartInspiration");
+    progress = 0;
+    direction = FWD;
+    halMotorDir(true);
+    step_periodo = getStepPeriod(millisec);
+    stepCounter = P_END;
+    microTimerRef = halStartMicroTimerRef();
 }
 
-void motorStartExhalation(int millisec)
-{
+void motorStartExhalation(int millisec) {
     LOG("<< motorStartExhalation");
-  progress = 0;
-  direction = BWD;
-  halMotorDir(false);
-  step_periodo = getStepPeriod(millisec);
-  stepCounter = P_END;
-  microTimerRef = halStartMicroTimerRef();
+    progress = 0;
+    direction = BWD;
+    halMotorDir(false);
+    step_periodo = getStepPeriod(millisec);
+    stepCounter = P_END;
+    microTimerRef = halStartMicroTimerRef();
 }
 
-int motorGetProgress()
-{
-  return progress;
+int motorGetProgress() {
+    return progress;
 }
-
-
 
 //------------------------------------------------------------
 #endif // #ifdef STEPPER_MOTOR_STEP_PIN

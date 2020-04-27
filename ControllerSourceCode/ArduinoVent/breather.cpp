@@ -33,290 +33,268 @@
 #include "serialWriter.h"
 
 #define MINUTE_MILLI 60000
-#define TM_WAIT_TO_OUT 200 //200 milliseconds
-#define TM_STOPPING 4000 // 4 seconds to stop
+#define TIME_WAIT_TO_OUT 200 //200 milliseconds
+#define TIME_STOPPING 4000 // 4 seconds to stop
 
-#define TM_FAST_CALIBRATION 4000 // 4 seconds
-#define TM_DATA_LOG_DELAY 500 // 500 milliseconds
+#define TIME_FAST_CALIBRATION 4000 // 4 seconds
+#define TIME_DATA_LOG_DELAY 500 // 500 milliseconds
 
-static int curr_pause;
-static int curr_rate;
-static int curr_in_milli;
-static int curr_out_milli;
-static int curr_total_cycle_milli;
-static int curr_progress;
-static uint64_t tm_start;
-static uint64_t tm_serialLog;
+static int currPause;
+static int currRate;
+static int currInMilli;
+static int currOutMilli;
+static int currTotalCycleMilli;
+static int currProgress;
+static uint64_t timerStart;
+static uint64_t timerSerialLog;
 static int16_t highPressure;
 static int16_t lowPressure;
 static int16_t highTidalVolume;
 static int16_t lowTidalVolume;
 static int16_t tidalVolume;
 static int8_t desiredPeep;
-static float peakInspiratoryPressure;
 
-static bool fast_calib;
+static bool fastCalibration;
 
 static const int rate[4] = {1,2,3,4} ;
 
-static B_STATE_t b_state = B_ST_STOPPED;
+static breatherState_t breatherState = BREATHER_STATE_STOPPED;
 
-void breatherRequestFastCalibration()
-{
+/* set flag for fast calibration */
+void breatherRequestFastCalibration() {
     if (propGetVent() == 0) {
         LOG("Ignore Fast Calib.");
         return;
     }
-    fast_calib = true;
-    CEvent::post(EVT_ALARM, ALARM_IDX_FAST_CALIB_TO_START);
-
+    fastCalibration = true;
+    CEvent::post(EVENT_ALARM, ALARM_INDEX_FAST_CALIB_TO_START);
 }
 
-int breatherGetPropress()
-{
-    return curr_progress;
+/* getter method for currProgress property */
+int breatherGetProgress() {
+    return currProgress;
 }
 
-void breatherStartCycle()
-{
-    curr_total_cycle_milli = MINUTE_MILLI / propGetBpm();
-    curr_pause = propGetPause();
-    curr_rate = propGetDutyCycle();
-    int in_out_t = curr_total_cycle_milli - (curr_rate + TM_WAIT_TO_OUT);
-    curr_in_milli = (in_out_t/2) / rate[curr_rate];
-    curr_out_milli = in_out_t - curr_in_milli;
-    curr_progress = 0;
-    tm_start = halStartTimerRef();
-    tm_serialLog = halStartTimerRef();
-    b_state = B_ST_IN;
+/* initialize all variables to start breather cycle */
+void breatherStartCycle() {
+    currTotalCycleMilli = MINUTE_MILLI / propGetBpm();
+    currPause = propGetPause();
+    currRate = propGetDutyCycle();
+    int inOutTime = currTotalCycleMilli - (currRate + TIME_WAIT_TO_OUT);
+    currInMilli = (inOutTime / 2) / rate[currRate];
+    currOutMilli = inOutTime - currInMilli;
+    currProgress = 0;
+    timerStart = halStartTimerRef();
+    timerSerialLog = halStartTimerRef();
+    breatherState = BREATHER_STATE_IN;
     halValveOutClose();
     halValveInOpen();
-    fast_calib = false;
+    fastCalibration = false;
     startTidalVolumeCalculation();
     highPressure = propGetHighPressure();
     lowPressure = propGetLowPressure();
     highTidalVolume = propGetHighTidal();
     lowTidalVolume = propGetLowTidal();
     desiredPeep = propGetDesiredPeep();
-    peakInspiratoryPressure = 0;
 
 #if 0
-  LOG("Ventilation ON:");
-  LOGV(" curr_total_cycle_milli = %d", curr_total_cycle_milli);
-  LOGV(" curr_pause = %d", curr_pause);
-  LOGV(" curr_in_milli = %d", curr_in_milli);
-  LOGV(" curr_out_milli = %d", curr_out_milli);
+    LOG("Ventilation ON:");
+    LOGV(" currTotalCycleMilli = %d", currTotalCycleMilli);
+    LOGV(" currPause = %d", currPause);
+    LOGV(" currInMilli = %d", currInMilli);
+    LOGV(" currOutMilli = %d", currOutMilli);
 #endif
-
 }
 
-static void UpdateValveBasedOnPeep()
-{
-    float currentPressure = pressGetVal(PRESSURE);
-    int currentPercentageAbovePeep = ((currentPressure - (float)desiredPeep)/desiredPeep) * 100;
-    //Serial.println(currentPercentageAbovePeep);
-
-    //This is because of not haveing a solidnoid fast and reliable enough
-    //TODO: Try out with a proper exhale valve that is reliable with a manual PEEP valve calibrated to min PEEP.
-    if (currentPercentageAbovePeep > 40)
-    { 
-        halValveOutOpen(); // drop the pressure
-    }else if(currentPercentageAbovePeep < 30)
-    { 
-        halValveOutClose(); //don't drop thepressure
-    }       
+/* getter method for breatherState property */
+breatherState_t breatherGetState() {
+    return breatherState;
 }
 
-static void CheckAndRespondToHighPressure(float currentPressure)
-{
-    if (currentPressure > peakInspiratoryPressure) {
-      peakInspiratoryPressure = currentPressure;
+/* start breather cycle if ventilator != 0
+ * ??? what does ventilator == 0 mean ??? */
+static void fsmStopped() {
+    if (propGetVent()) {
+        //breatherStartCycle();
+        // lets do a fast calibration
+        fastCalibration = false;
+        timerStart = halStartTimerRef();
+        breatherState = BREATHER_STATE_INITIAL_FAST_CALIBRATION;
+        halValveOutOpen();
     }
-
-    if (peakInspiratoryPressure > highPressure) {
-        CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_PRESSURE);
-        halValveOutOpen(); // drop the pressure
-        halValveInClose();
-    } else {
-        halValveOutClose();
-    }     
 }
 
-B_STATE_t breatherGetState()
-{
-    return b_state;
-}
-
-static void fsmStopped()
-{
-  if (propGetVent() ) {
-      //breatherStartCycle();
-      // lets do a fast calibration 
-      fast_calib = false;
-      tm_start = halStartTimerRef();
-      b_state = B_ST_INITIAL_FAST_CALIB;
-      halValveOutOpen();
-  }
-}
-
-static void fsmIn()
-{
-    float pressure = getCmH2OGauge();
-
-    uint64_t m = halStartTimerRef();
-    if (tm_start + curr_in_milli < m) {
+/* checks if breathe in time is up and starts wait to out if so.
+ * Detects high/low pressure */
+static void fsmIn() {
+    uint64_t currTime = halStartTimerRef();
+    if (timerStart + currInMilli < currTime) {
         // in valve off
         halValveInClose();
-        tm_start = halStartTimerRef();
-        b_state = B_ST_WAIT_TO_OUT;
+        timerStart = halStartTimerRef();
+        breatherState = BREATHER_STATE_WAIT_TO_OUT;
         endTidalVolumeCalculation();
         tidalVolume = pressGetTidalVolume();
-    }
-    else {
-        curr_progress = ((m - tm_start) * 100)/ curr_in_milli;
-        //curr_progress = 100 - (100 * tm_start + curr_in_milli) / m;
+    } else {
+        currProgress = ((currTime - timerStart) * 100) / currInMilli;
+        //currProgress = 100 - (100 * timerStart + currInMilli) / currTime;
 
         //--------- we check for low pressure at 50% or grater
         // low pressure hardcode to 3 InchH2O -> 90 int
-        if (tm_start + curr_in_milli/2 < m) {
-            if (pressure < lowPressure) {
-              CEvent::post(EVT_ALARM, ALARM_IDX_LOW_PRESSURE);
+        if (timerStart + currInMilli / 2 < currTime) {
+            if (getCmH2OGauge() < lowPressure) {
+                CEvent::post(EVENT_ALARM, ALARM_INDEX_LOW_PRESSURE);
             }
         }
     }
     //------ check for high pressure hardcode to 35 InchH2O -> 531 int
-
-    CheckAndRespondToHighPressure(pressure);
-    
+    if (getCmH2OGauge() > highPressure) {
+        CEvent::post(EVENT_ALARM, ALARM_INDEX_HIGH_PRESSURE);
+    }
 }
 
-static void fsmWaitToOut()
-{
-    if (halCheckTimerExpired(tm_start, TM_WAIT_TO_OUT)) {
+/* checks if wait time is up, and starts breathe out if so */
+static void fsmWaitToOut() {
+    if (halCheckTimerExpired(timerStart, TIME_WAIT_TO_OUT)) {
         // switch valves
-        tm_start = halStartTimerRef();
-        b_state = B_ST_OUT;
+        timerStart = halStartTimerRef();
+        breatherState = BREATHER_STATE_OUT;
         //LOG("Wait to out");
     }
 }
 
-static void fsmOut()
-{
-    uint64_t m = halStartTimerRef();
-    if (tm_start + curr_out_milli < m) {
+/* checks if breathe out time is up and enters pause state if so */
+static void fsmOut() {
+    uint64_t currTime = halStartTimerRef();
+    float currentPressure = pressGetVal(PRESSURE);
+    if (timerStart + currOutMilli < currTime) {
 
         //if we have fast calibration request then we keep the valve open
-        if (fast_calib) {
-            fast_calib = false;
-            tm_start = halStartTimerRef();
-            b_state = B_ST_FAST_CALIB;
+        if (fastCalibration) {
+            fastCalibration = false;
+            timerStart = halStartTimerRef();
+            breatherState = BREATHER_STATE_FAST_CALIBRATION;
             return;
         }
 
         // switch valves
-        tm_start = halStartTimerRef();
-        b_state = B_ST_PAUSE;
+        timerStart = halStartTimerRef();
+        breatherState = BREATHER_STATE_PAUSE;
+        halValveOutClose();
 
         //------ check for high tidal volume between 3-25 cmH2O
         if (tidalVolume < lowTidalVolume) {
-            CEvent::post(EVT_ALARM, ALARM_IDX_LOW_TIDAL_VOLUME);
+            CEvent::post(EVENT_ALARM, ALARM_INDEX_LOW_TIDAL_VOLUME);
         }
 
         if (tidalVolume > highTidalVolume) {
-            CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_TIDAL_VOLUME);
+            CEvent::post(EVENT_ALARM, ALARM_INDEX_HIGH_TIDAL_VOLUME);
         }
-    }
-    else {
-        curr_progress = 100 - ((m - tm_start) * 100)/ curr_out_milli;
-        if (curr_progress >  100) curr_progress = 100;
-        
-        UpdateValveBasedOnPeep();
+    } else {
+        currProgress = 100 - ((currTime - timerStart) * 100) / currOutMilli;
+        if (currProgress > 100) currProgress = 100;
+
+        if (currentPressure > (float) desiredPeep)
+            halValveOutOpen(); // drop the pressure
+        if (currentPressure <= (float) desiredPeep)
+            halValveOutClose(); //don't drop thepressure       
     }
 }
 
-static void fsmFastCalib()
-{
-    uint64_t m = halStartTimerRef();
-    if (halCheckTimerExpired(tm_start, TM_FAST_CALIBRATION)) {
+static void fsmFastCalibration() {
+    if (halCheckTimerExpired(timerStart, TIME_FAST_CALIBRATION)) {
         // switch valves
-        tm_start = halStartTimerRef();
-        b_state = B_ST_PAUSE;
+        timerStart = halStartTimerRef();
+        breatherState = BREATHER_STATE_PAUSE;
         bmp280SetReference();
         halValveOutClose();
-        CEvent::post(EVT_ALARM, ALARM_IDX_FAST_CALIB_DONE);
+        CEvent::post(EVENT_ALARM, ALARM_INDEX_FAST_CALIB_DONE);
     }
-
 }
 
-static void fsmInitialFastCalib()
-{
-    uint64_t m = halStartTimerRef();
-    if (halCheckTimerExpired(tm_start, TM_FAST_CALIBRATION)) {
+static void fsmInitialFastCalibration() {
+    if (halCheckTimerExpired(timerStart, TIME_FAST_CALIBRATION)) {
         // switch valves
-        tm_start = halStartTimerRef();
-        b_state = B_ST_PAUSE;
+        timerStart = halStartTimerRef();
+        breatherState = BREATHER_STATE_PAUSE;
         bmp280SetReference();
         halValveOutClose();
     }
-
 }
 
-
-static void fsmStopping()
-{
-    if (halCheckTimerExpired(tm_start, TM_STOPPING)) {
+/* checks if stopping time is up and enters stopped state if so */
+static void fsmStopping() {
+    if (halCheckTimerExpired(timerStart, TIME_STOPPING)) {
         // switch valves
-        tm_start = halStartTimerRef();
-        b_state = B_ST_STOPPED;
+        timerStart = halStartTimerRef();
+        breatherState = BREATHER_STATE_STOPPED;
         halValveOutOpen();
         halValveInClose();
     }
 }
 
-static void fsmPause()
-{
-    UpdateValveBasedOnPeep();
-
-    if (halCheckTimerExpired(tm_start, curr_pause)) {
+/* checks if pause time is up and resets the cycle */
+static void fsmPause() {
+    if (halCheckTimerExpired(timerStart, currPause)) {
         breatherStartCycle();
     }
 }
 
-void breatherLoop()
-{
-    if (halCheckTimerExpired(tm_serialLog, TM_DATA_LOG_DELAY))
-    {
+/* main breather loop */
+void breatherLoop() {
+    if (halCheckTimerExpired(timerSerialLog, TIME_DATA_LOG_DELAY)) {
         sendDataViaSerial();
-        tm_serialLog = halStartTimerRef();
+        timerSerialLog = halStartTimerRef();
     }
 
-    if (b_state != B_ST_STOPPED && b_state != B_ST_STOPPING && propGetVent() == 0) {
+    if (breatherState != BREATHER_STATE_STOPPED && breatherState != BREATHER_STATE_STOPPING && propGetVent() == 0) {
         // force stop
-        tm_start = halStartTimerRef();
-        b_state = B_ST_STOPPING;
-        curr_progress = 0;
+        timerStart = halStartTimerRef();
+        breatherState = BREATHER_STATE_STOPPING;
+        currProgress = 0;
         halValveInClose();
-        UpdateValveBasedOnPeep();
+        halValveOutOpen();
     }
 
-    if (b_state == B_ST_STOPPED)
-        fsmStopped();
-    else if (b_state == B_ST_IN)
-        fsmIn();
-    else if (b_state == B_ST_WAIT_TO_OUT)
-        fsmWaitToOut();
-    else if (b_state == B_ST_OUT)
-        fsmOut();
-    else if (b_state == B_ST_INITIAL_FAST_CALIB) 
-        fsmInitialFastCalib(); 
-    else if (b_state == B_ST_FAST_CALIB) 
-        fsmFastCalib();
-    else if (b_state == B_ST_PAUSE)
-        fsmPause();
-    else if (b_state == B_ST_STOPPING)
-        fsmStopping();
-    else {
-        LOG("breatherLoop: unexpected state");
+/* all of these methods basically do the same thing:
+ * check if the time is up for the current state and if so,
+ * update the variables according to the state we're in,
+ * and move onto the next state */
+    switch(breatherState) {
+        case BREATHER_STATE_STOPPED:
+            fsmStopped();
+            break;
+
+        case BREATHER_STATE_IN:
+            fsmIn();
+            break;
+
+        case BREATHER_STATE_WAIT_TO_OUT:
+            fsmWaitToOut();
+            break;
+
+        case BREATHER_STATE_OUT:
+            fsmOut();
+            break;
+
+        case BREATHER_STATE_INITIAL_FAST_CALIBRATION:
+            fsmInitialFastCalibration();
+            break;
+
+        case BREATHER_STATE_FAST_CALIBRATION:
+            fsmFastCalibration();
+            break;
+
+        case BREATHER_STATE_PAUSE:
+            fsmPause();
+            break;
+
+        case BREATHER_STATE_STOPPING:
+            fsmStopping();
+            break;
+
+        default:
+            LOG("breatherLoop: unexpected state");
     }
 }
 //---------------------------------------------------------

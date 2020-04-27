@@ -46,53 +46,50 @@ Based on the data sheet provided by Bosch for the Bme280 environmental sensor.
 
 //////////////////////////////////////////////////////////////////
 /// BME280I2C - I2C Implementation of BME280.
-class BMx280I2C: public BME280
-{
+class BMx280I2C: public BME280 {
 
 public:
 
-   struct Settings : public BME280::Settings
-   {
-      Settings(
-         OSR _tosr       = OSR_X1,
-         OSR _hosr       = OSR_X1,
-         OSR _posr       = OSR_X1,
-         Mode _mode      = Mode_Forced,
-         StandbyTime _st = StandbyTime_1000ms,
-         Filter _filter  = Filter_Off,
-         SpiEnable _se   = SpiEnable_False,
-         uint8_t _addr   = 0x76
-        ): BME280::Settings(_tosr, _hosr, _posr, _mode, _st, _filter, _se),
-           bme280Addr(_addr) {}
+    struct Settings : public BME280::Settings {
+        Settings(
+                OSR _tosr = OSR_X1,
+                OSR _hosr = OSR_X1,
+                OSR _posr = OSR_X1,
+                Mode _mode = Mode_Forced,
+                StandbyTime _st = StandbyTime_1000ms,
+                Filter _filter = Filter_Off,
+                SpiEnable _se = SpiEnable_False,
+                uint8_t _addr = 0x76
+        ) : BME280::Settings(_tosr, _hosr, _posr, _mode, _st, _filter, _se),
+            bme280Addr(_addr) {}
 
-      uint8_t bme280Addr;
-   };
+        uint8_t bme280Addr;
+    };
 
-  ///////////////////////////////////////////////////////////////
-  /// Constructor used to create the class. All parameters have 
-  /// default values.
-  BMx280I2C(
-    const Settings& settings = Settings());
-
+    ///////////////////////////////////////////////////////////////
+    /// Constructor used to create the class. All parameters have
+    /// default values.
+    BMx280I2C(
+            const Settings &settings = Settings());
 
 protected:
 
 private:
 
-  uint8_t m_bme_280_addr;
+    uint8_t m_bme_280_addr;
 
-  //////////////////////////////////////////////////////////////////
-  /// Write values to BME280 registers.
-  virtual bool WriteRegister(
-    uint8_t addr,
-    uint8_t data);
+    //////////////////////////////////////////////////////////////////
+    /// Write values to BME280 registers.
+    virtual bool WriteRegister(
+            uint8_t addr,
+            uint8_t data);
 
-  /////////////////////////////////////////////////////////////////
-  /// Read values from BME280 registers.
-  virtual bool ReadRegister(
-    uint8_t addr,
-    uint8_t data[],
-    uint8_t length);
+    /////////////////////////////////////////////////////////////////
+    /// Read values from BME280 registers.
+    virtual bool ReadRegister(
+            uint8_t addr,
+            uint8_t data[],
+            uint8_t length);
 
 };
 #endif // TG_BME_280_I2C_H

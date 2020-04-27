@@ -24,6 +24,6 @@
 
 // usage: crc_8("123456789", 9);
 
-uint8_t crc_8( const uint8_t * input_str, int num_bytes );
+uint8_t crc_8(const uint8_t * input_str, int num_bytes);
 
 #endif // CRC_H

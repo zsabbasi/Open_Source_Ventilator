@@ -29,17 +29,17 @@ void alarmResetAll();
 
 // Note: this enum must follow the exact sequence and reference for the "alarms" array in alarm.cpp
 enum {
-    ALARM_IDX_HIGH_PRESSURE,     // index for high pressure alarm in alarms array
-    ALARM_IDX_LOW_PRESSURE,      // index for low pressure alarm in alarms array
-    ALARM_IDX_UNDER_SPEED_MOTOR,
-    ALARM_IDX_FAST_CALIB_TO_START,
-    ALARM_IDX_FAST_CALIB_DONE,
-    ALARM_IDX_BAD_PRESS_SENSOR,
-    ALARM_IDX_HIGH_TIDAL_VOLUME,
-    ALARM_IDX_LOW_TIDAL_VOLUME,
+    ALARM_INDEX_HIGH_PRESSURE,     // index for high pressure alarm in alarms array
+    ALARM_INDEX_LOW_PRESSURE,      // index for low pressure alarm in alarms array
+    ALARM_INDEX_UNDER_SPEED_MOTOR,
+    ALARM_INDEX_FAST_CALIB_TO_START,
+    ALARM_INDEX_FAST_CALIB_DONE,
+    ALARM_INDEX_BAD_PRESS_SENSOR,
+    ALARM_INDEX_HIGH_TIDAL_VOLUME,
+    ALARM_INDEX_LOW_TIDAL_VOLUME,
     // Add here new alarm as well as an entry in "alarms" array in alarm.cpp
 
-    ALARM_IDX_END   // must be the very last
+    ALARM_INDEX_END   // must be the very last
 };
 
 class Alarm : CEvent {
@@ -63,9 +63,7 @@ private:
 
     //--- variables
     bool beepIsOn = false;
-    int8_t activeAlarmIdx = -1;
-
-
+    int8_t activeAlarmIndex = -1;
 };
 
 //----------------------------------------------------

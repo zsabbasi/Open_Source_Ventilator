@@ -32,201 +32,199 @@
 #include "motor.h"
 
 #define MINUTE_MILLI 60000
-#define TM_WAIT_TO_OUT 200 //200 milliseconds
-#define TM_STOPPING 4000 // 4 seconds to stop
+#define TIME_WAIT_TO_OUT 200 //200 milliseconds
+#define TIME_STOPPING 4000 // 4 seconds to stop
 
-#define TM_FAST_CALIBRATION 4000 // 4 seconds
+#define TIME_FAST_CALIBRATION 4000 // 4 seconds
 
 
-static int curr_pause;
-static int curr_rate;
-static int curr_in_milli;
-static int curr_out_milli;
-static int curr_total_cycle_milli;
-static int curr_progress;
-static uint64_t tm_start;
+static int currPause;
+static int currRate;
+static int currInMilli;
+static int currOutMilli;
+static int currTotalCycleMilli;
+static int currProgress;
+static uint64_t timerStart;
 static int16_t highPressure;
 static int16_t lowPressure;
 
-static bool fast_calib;
+static bool fastCalibration;
 
 static const int rate[4] = {1,2,3,4} ;
 
-static B_STATE_t b_state = B_ST_STOPPED;
+static breatherState_t breatherState = BREATHER_STATE_STOPPED;
 
-void breatherRequestFastCalibration()
-{
+void breatherRequestFastCalibration() {
     if (propGetVent() == 0) {
         LOG("Ignore Fast Calib.");
         return;
     }
-    fast_calib = true;
-    CEvent::post(EVT_ALARM, ALARM_IDX_FAST_CALIB_TO_START);
-
+    fastCalibration = true;
+    CEvent::post(EVENT_ALARM, ALARM_INDEX_FAST_CALIB_TO_START);
 }
 
-int breatherGetPropress()
-{
-    return curr_progress;
+int breatherGetProgress() {
+    return currProgress;
 }
 
-void breatherStartCycle()
-{
-    curr_total_cycle_milli = MINUTE_MILLI / propGetBpm();
-    curr_pause = propGetPause();
-    curr_rate = propGetDutyCycle();
-    int in_out_t = curr_total_cycle_milli - (curr_rate + TM_WAIT_TO_OUT);
-    curr_in_milli = (in_out_t/2) / rate[curr_rate];
-    curr_out_milli = in_out_t - curr_in_milli;
-    curr_progress = 0;
-    tm_start = halStartTimerRef();
-    b_state = B_ST_IN;
+void breatherStartCycle() {
+    currTotalCycleMilli = MINUTE_MILLI / propGetBpm();
+    currPause = propGetPause();
+    currRate = propGetDutyCycle();
+    int inOutTime = currTotalCycleMilli - (currRate + TIME_WAIT_TO_OUT);
+    currInMilli = (inOutTime / 2) / rate[currRate];
+    currOutMilli = inOutTime - currInMilli;
+    currProgress = 0;
+    timerStart = halStartTimerRef();
+    breatherState = BREATHER_STATE_IN;
     halValveOutClose();
     halValveInOpen();
-    fast_calib = false;
+    fastCalibration = false;
     highPressure = propGetHighPressure();
     lowPressure = propGetLowPressure();
 
-  motorStartInspiration(curr_in_milli);
-  
+    motorStartInspiration(currInMilli);
 
 #if 0
-  LOG("Ventilation ON:");
-  LOGV(" curr_total_cycle_milli = %d", curr_total_cycle_milli);
-  LOGV(" curr_pause = %d", curr_pause);
-  LOGV(" curr_in_milli = %d", curr_in_milli);
-  LOGV(" curr_out_milli = %d", curr_out_milli);
+    LOG("Ventilation ON:");
+    LOGV(" currTotalCycleMilli = %d", currTotalCycleMilli);
+    LOGV(" currPause = %d", currPause);
+    LOGV(" currInMilli = %d", currInMilli);
+    LOGV(" currOutMilli = %d", currOutMilli);
 #endif
-
 }
 
-B_STATE_t breatherGetState()
-{
-    return b_state;
+breatherState_t breatherGetState() {
+    return breatherState;
 }
 
-static void fsmStopped()
-{
-  if (propGetVent() ) {
-      breatherStartCycle();
-  }
+static void fsmStopped() {
+    if (propGetVent()) {
+        breatherStartCycle();
+    }
 }
 
-static void fsmIn()
-{  
-  curr_progress = motorGetProgress();
-  
-  if (curr_progress == 100) {
-    // in valve off
-    halValveInClose();
-    tm_start = halStartTimerRef();
-    b_state = B_ST_WAIT_TO_OUT;    
-  }
-  
-  //--------- we check for low pressure at 50% or grater
-  // low pressure hardcode to 3 InchH2O -> 90 int
-  if (curr_progress < 50) {
-      if (getCmH2OGauge(PRESSURE) < lowPressure) {
-        CEvent::post(EVT_ALARM, ALARM_IDX_LOW_PRESSURE);
-      }
-  }
-  
-  //------ check for high pressure hardcode to 35 InchH2O -> 531 int
-  if (getCmH2OGauge(PRESSURE) > highPressure) {
-    CEvent::post(EVT_ALARM, ALARM_IDX_HIGH_PRESSURE);
-  }
+static void fsmIn() {
+    currProgress = motorGetProgress();
 
+    if (currProgress == 100) {
+        // in valve off
+        halValveInClose();
+        timerStart = halStartTimerRef();
+        breatherState = BREATHER_STATE_WAIT_TO_OUT;
+    }
+
+    //--------- we check for low pressure at 50% or grater
+    // low pressure hardcode to 3 InchH2O -> 90 int
+    if (currProgress < 50) {
+        if (getCmH2OGauge(PRESSURE) < lowPressure) {
+            CEvent::post(EVENT_ALARM, ALARM_INDEX_LOW_PRESSURE);
+        }
+    }
+
+    //------ check for high pressure hardcode to 35 InchH2O -> 531 int
+    if (getCmH2OGauge(PRESSURE) > highPressure) {
+        CEvent::post(EVENT_ALARM, ALARM_INDEX_HIGH_PRESSURE);
+    }
 }
 
-static void fsmWaitToOut()
-{
-    if (halCheckTimerExpired(tm_start, TM_WAIT_TO_OUT)) {
+static void fsmWaitToOut() {
+    if (halCheckTimerExpired(timerStart, TIME_WAIT_TO_OUT)) {
         // switch valves
-        tm_start = halStartTimerRef();
-        b_state = B_ST_OUT;
+        timerStart = halStartTimerRef();
+        breatherState = BREATHER_STATE_OUT;
         halValveOutOpen();
-        motorStartExhalation(curr_out_milli);
+        motorStartExhalation(currOutMilli);
     }
 }
 
 static void fsmOut()
 {
   int p = motorGetProgress();
-  curr_progress = 100 - p;
-  if (curr_progress >  100) curr_progress = 100;
+  currProgress = 100 - p;
+  if (currProgress >  100) currProgress = 100;
   if (p == 100) {
 
         //if we have fast calibration request then we keep the valve open
-        if (fast_calib) {
-            fast_calib = false;
-            tm_start = halStartTimerRef();
-            b_state = B_ST_FAST_CALIB;
+        if (fastCalibration) {
+            fastCalibration = false;
+            timerStart = halStartTimerRef();
+            breatherState = BREATHER_STATE_FAST_CALIBRATION;
             return;
         }
-    tm_start = halStartTimerRef();
-    b_state = B_ST_PAUSE;
+    timerStart = halStartTimerRef();
+    breatherState = BREATHER_STATE_PAUSE;
     halValveOutClose();    
   }
 }
 
-static void fsmFastCalib()
-{
-    uint64_t m = halStartTimerRef();
-    if (halCheckTimerExpired(tm_start, TM_FAST_CALIBRATION)) {
+static void fsmFastCalibration() {
+    if (halCheckTimerExpired(timerStart, TIME_FAST_CALIBRATION)) {
         // switch valves
-        tm_start = halStartTimerRef();
-        b_state = B_ST_PAUSE;
+        timerStart = halStartTimerRef();
+        breatherState = BREATHER_STATE_PAUSE;
         halValveOutClose();
-        CEvent::post(EVT_ALARM, ALARM_IDX_FAST_CALIB_DONE);
+        CEvent::post(EVENT_ALARM, ALARM_INDEX_FAST_CALIB_DONE);
     }
-
 }
 
-static void fsmStopping()
-{
-    if (halCheckTimerExpired(tm_start, TM_STOPPING)) {
+static void fsmStopping() {
+    if (halCheckTimerExpired(timerStart, TIME_STOPPING)) {
         // switch valves
-        tm_start = halStartTimerRef();
-        b_state = B_ST_STOPPED;
+        timerStart = halStartTimerRef();
+        breatherState = BREATHER_STATE_STOPPED;
         halValveOutClose();
         halValveInClose();
     }
 }
 
-static void fsmPause()
-{
-    if (halCheckTimerExpired(tm_start, curr_pause)) {
+static void fsmPause() {
+    if (halCheckTimerExpired(timerStart, currPause)) {
         breatherStartCycle();
     }
 }
 
-void breatherLoop()
-{
-    if (b_state != B_ST_STOPPED && b_state != B_ST_STOPPING && propGetVent() == 0) {
+void breatherLoop() {
+    if (breatherState != BREATHER_STATE_STOPPED && breatherState != BREATHER_STATE_STOPPING && propGetVent() == 0) {
         // force stop
-        tm_start = halStartTimerRef();
-        b_state = B_ST_STOPPING;
-        curr_progress = 0;
+        timerStart = halStartTimerRef();
+        breatherState = BREATHER_STATE_STOPPING;
+        currProgress = 0;
         halValveInClose();
         halValveOutOpen();
     }
 
-    if (b_state == B_ST_STOPPED)
-        fsmStopped();
-    else if (b_state == B_ST_IN)
-        fsmIn();
-    else if (b_state == B_ST_WAIT_TO_OUT)
-        fsmWaitToOut();
-    else if (b_state == B_ST_OUT)
-        fsmOut();
-    else if (b_state == B_ST_FAST_CALIB)
-        fsmFastCalib();
-    else if (b_state == B_ST_PAUSE)
-        fsmPause();
-    else if (b_state == B_ST_STOPPING)
-        fsmStopping();
-    else {
-        LOG("breatherLoop: unexpected state");
+    switch (breatherState) {
+        case BREATHER_STATE_STOPPED:
+            fsmStopped();
+            break;
+
+        case BREATHER_STATE_IN:
+            fsmIn();
+            break;
+
+        case BREATHER_STATE_WAIT_TO_OUT:
+            fsmWaitToOut();
+            break;
+
+        case BREATHER_STATE_OUT:
+            fsmOut();
+            break;
+
+        case BREATHER_STATE_FAST_CALIBRATION:
+            fsmFastCalibration();
+            break;
+
+        case BREATHER_STATE_PAUSE:
+            fsmPause();
+            break;
+
+        case BREATHER_STATE_STOPPING:
+            fsmStopping();
+            break;
+
+        default:
+            LOG("breatherLoop: unexpected state");
     }
 }
 

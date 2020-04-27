@@ -59,8 +59,8 @@
 #define     STR_ALARM_LOW_TIDAL         "LOW TIDAL VOL!"      // max 16
 #define     STR_ALARM_HIGH_TIDAL        "HIGH TIDAL VOL!"      // max 16
 #define     STR_ALARM_UNDER_SPEED       "MOT UNDER SPEED!"      // max 16
-#define  STR_ALARM_FAST_CALIB_TO_START  "STARTING CALIB. "
-#define  STR_ALARM_FAST_CALIB_DONE      " CALIB. ENDDED  "
+#define     STR_ALARM_FAST_CALIB_TO_START  "STARTING CALIB. "
+#define     STR_ALARM_FAST_CALIB_DONE      " CALIB. ENDDED  "
 #define     STR_ALARM_BAD_PRESS_SENSOR  "PRESS SENSOR ERR"      // max 16
 
 #elif (LANGUAGE_PT_BR == 1)
@@ -104,8 +104,5 @@
 #else
   #error "One Language must be set to 1 in config.h"
 #endif
-
-
-
 
 #endif // LANGUAGES_H

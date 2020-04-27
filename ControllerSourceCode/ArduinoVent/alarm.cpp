@@ -35,8 +35,8 @@
 // #define SIM_HIGH_PRESSURE
 
 typedef enum : uint8_t {
-    ST_ALARM_OFF,
-    ST_ALARM_ON,
+    STATE_ALARM_OFF,
+    STATE_ALARM_ON,
 } state_t;
 
 typedef void (*muteFunc_t)(void);
@@ -45,8 +45,8 @@ typedef void (*goOffFunc_t)(void);
 
 typedef struct alarm_st {
     state_t     state;
-    uint8_t     cnt_sound;         // num of times being sounded before become visual only
-    int8_t      max_sound;         // num max to be sounded. if -1 always will have sound alarm
+    uint8_t     soundCount;         // num of times being sounded before become visual only
+    int8_t      maxSound;         // num max to be sounded. if -1 always will have sound alarm
     const char *  message;
     goOffFunc_t goOffAction;
     muteFunc_t  muteAction;
@@ -55,274 +55,253 @@ typedef struct alarm_st {
 static Alarm * alarm;
 
 inline bool isMuted (alarm_t * a) {
-    if (a->max_sound == -1)
+    if (a->maxSound == -1)
         return false;
-    if (a->cnt_sound >= a->max_sound)
-        return true;
-    return false;
+    return a->soundCount >= a->maxSound;
 }
-void alarmResetAll()
-{
+void alarmResetAll() {
     alarm->internalAlarmResetAll();
 }
 
-void muteHighPressureAlarm()
-{
+void muteHighPressureAlarm() {
 
 }
 
-void muteLowPressureAlarm()
-{
+void muteLowPressureAlarm() {
 
 }
 
-void muteHighTidalAlarm()
-{
+void muteHighTidalAlarm() {
 
 }
 
-void muteLowTidalAlarm()
-{
+void muteLowTidalAlarm() {
 
 }
 
 static alarm_t alarms[] = {
-  {
-        ST_ALARM_OFF,
-        0,
-        MAX_SOUND_ALARM_HIGH_PRESSURE,
-        STR_ALARM_HIGH_PRESSURE,
-        0,
-        muteHighPressureAlarm
-  },
+        {
+                STATE_ALARM_OFF,
+                0,
+                MAX_SOUND_ALARM_HIGH_PRESSURE,
+                STR_ALARM_HIGH_PRESSURE,
+                0,
+                muteHighPressureAlarm
+        },
 
-  {
-        ST_ALARM_OFF,
-        0,
-        MAX_SOUND_ALARM_LOW_PRESSURE,
-        STR_ALARM_LOW_PRESSURE,
-        0,
-        muteLowPressureAlarm
-  },
+        {
+                STATE_ALARM_OFF,
+                0,
+                MAX_SOUND_ALARM_LOW_PRESSURE,
+                STR_ALARM_LOW_PRESSURE,
+                0,
+                muteLowPressureAlarm
+        },
 
-  {
-        ST_ALARM_OFF,
-        0,
-        MAX_SOUND_ALARM_UNDER_SPEED,
-        STR_ALARM_UNDER_SPEED,
-        0,
-        0
-  },
+        {
+                STATE_ALARM_OFF,
+                0,
+                MAX_SOUND_ALARM_UNDER_SPEED,
+                STR_ALARM_UNDER_SPEED,
+                0,
+                0
+        },
 
-    {
-          ST_ALARM_OFF,
-          0,
-          MAX_SOUND_DEFAULT,
-          STR_ALARM_FAST_CALIB_TO_START,
-          0,
-          0
-    },
+        {
+                STATE_ALARM_OFF,
+                0,
+                MAX_SOUND_DEFAULT,
+                STR_ALARM_FAST_CALIB_TO_START,
+                0,
+                0
+        },
 
-    {
-          ST_ALARM_OFF,
-          0,
-          MAX_SOUND_DEFAULT,
-          STR_ALARM_FAST_CALIB_DONE,
-          0,
-          0
-    },
-  
-    {
-          ST_ALARM_OFF,
-          0,
-          MAX_SOUND_DEFAULT,
-          STR_ALARM_BAD_PRESS_SENSOR,
-          0,
-          0
-    },
-  {
-        ST_ALARM_OFF,
-        0,
-        MAX_SOUND_ALARM_HIGH_TIDAL,
-        STR_ALARM_HIGH_TIDAL,
-        0,
-        muteHighTidalAlarm
-  },
+        {
+                STATE_ALARM_OFF,
+                0,
+                MAX_SOUND_DEFAULT,
+                STR_ALARM_FAST_CALIB_DONE,
+                0,
+                0
+        },
 
-  {
-        ST_ALARM_OFF,
-        0,
-        MAX_SOUND_ALARM_LOW_TIDAL,
-        STR_ALARM_LOW_TIDAL,
-        0,
-        muteLowTidalAlarm
-  },
+        {
+                STATE_ALARM_OFF,
+                0,
+                MAX_SOUND_DEFAULT,
+                STR_ALARM_BAD_PRESS_SENSOR,
+                0,
+                0
+        },
+        {
+                STATE_ALARM_OFF,
+                0,
+                MAX_SOUND_ALARM_HIGH_TIDAL,
+                STR_ALARM_HIGH_TIDAL,
+                0,
+                muteHighTidalAlarm
+        },
 
+        {
+                STATE_ALARM_OFF,
+                0,
+                MAX_SOUND_ALARM_LOW_TIDAL,
+                STR_ALARM_LOW_TIDAL,
+                0,
+                muteLowTidalAlarm
+        },
 };
+
 #define NUM_ALARMS  sizeof(alarms) / sizeof(alarm_t)
 
-void Alarm::beepOnOff(bool on)
-{
+void Alarm::beepOnOff(bool on) {
     if (on) {
-        if (beepIsOn == false) {
+        if (!beepIsOn) {
             beepIsOn = true;
             halBeepAlarmOnOff(true);
         }
-    }
-    else {
-        if (beepIsOn == true) {
+    } else { // !on
+        if (beepIsOn) {
             beepIsOn = false;
             halBeepAlarmOnOff(false);
         }
     }
 }
 
-void Alarm::internalAlarmResetAll()
-{
+void Alarm::internalAlarmResetAll() {
     LOG("Alarms reset");
     uint8_t i;
-    alarm_t * a = alarms;
-    activeAlarmIdx = -1;
-    for (i=0; i< NUM_ALARMS; i++) {
-        a->cnt_sound = 0;
-        a->state = ST_ALARM_OFF;
+    alarm_t *a = alarms;
+    activeAlarmIndex = -1;
+    for (i = 0; i < NUM_ALARMS; i++) {
+        a->soundCount = 0;
+        a->state = STATE_ALARM_OFF;
         a++;
     }
     beepOnOff(false);
-    CEvent::post(EVT_ALARM_DISPLAY_OFF,0);
+    CEvent::post(EVENT_ALARM_DISPLAY_OFF, 0);
 }
 
-void Alarm::setNextAlarmIfAny(bool fromMute)
-{
+void Alarm::setNextAlarmIfAny(bool fromMute) {
     uint8_t i;
-    alarm_t * a;
+    alarm_t *a;
 
-    if (activeAlarmIdx >= 0) {
+    if (activeAlarmIndex >= 0) {
         // tolerates as there is already an alarm. mute will take care of calling this func once again
         return;
     }
 
-    for (i=0; i< NUM_ALARMS; i++) {
+    for (i = 0; i < NUM_ALARMS; i++) {
         a = &alarms[i];
 
-        if (a->state == ST_ALARM_ON){
-            activeAlarmIdx = i;
+        if (a->state == STATE_ALARM_ON) {
+            activeAlarmIndex = i;
             if (a->goOffAction) { // call an action if a callback was defined
                 a->goOffAction();
             }
             CEvent::post(EVT_ALARM_DISPLAY_ON, (char *) a->message);
-            if (isMuted(a) == false) {
+            if (!isMuted(a)) {
                 if (fromMute)
-                  beepOnOff(true);
+                    beepOnOff(true);
             }
             return;
         }
     }
 }
 
-void Alarm::muteAlarmIfOn()
-{
+void Alarm::muteAlarmIfOn() {
     LOG("Mute alarm");
-    if (activeAlarmIdx < 0)
+    if (activeAlarmIndex < 0)
         return;
 
     beepOnOff(false);
 
-    alarm_t * a = &alarms[activeAlarmIdx];
+    alarm_t *a = &alarms[activeAlarmIndex];
 
     if (a->muteAction) { // call an action if a callback was defined
         a->muteAction();
     }
-    a->state = ST_ALARM_OFF;
-    if ((a->max_sound != -1) && (a->cnt_sound < a->max_sound)) {
-        a->cnt_sound++;
-        //LOGV("Max sound set to %d", a->cnt_sound);
+    a->state = STATE_ALARM_OFF;
+    if ((a->maxSound != -1) && (a->soundCount < a->maxSound)) {
+        a->soundCount++;
+        //LOGV("Max sound set to %d", a->soundCount);
     }
 
-    activeAlarmIdx = -1;
-    CEvent::post(EVT_ALARM_DISPLAY_OFF, 0);
+    activeAlarmIndex = -1;
+    CEvent::post(EVENT_ALARM_DISPLAY_OFF, 0);
     setNextAlarmIfAny(true);
 }
 
-
-void alarmInit()
-{
+void alarmInit() {
     alarm = new Alarm();
 }
 
-void alarmLoop()
-{
+void alarmLoop() {
 
 }
 
-static void processAlarmEvent(alarm_t * a)
-{
-  a->state = ST_ALARM_ON;
-  if (isMuted(a) == false) {
-      alarm->beepOnOff(true);
-  }
-  alarm->setNextAlarmIfAny(false);
+static void processAlarmEvent(alarm_t * a) {
+    a->state = STATE_ALARM_ON;
+    if (!isMuted(a)) {
+        alarm->beepOnOff(true);
+    }
+    alarm->setNextAlarmIfAny(false);
 }
 
 
-Alarm::Alarm ()
-{
+Alarm::Alarm () {
 
 }
 
-void Alarm::Loop()
-{
+void Alarm::Loop() {
 
 }
 
-propagate_t Alarm::onEvent(event_t * event)
-{
-    alarm_t * a;
-    int i;
+propagate_t Alarm::onEvent(event_t * event) {
+    alarm_t *a;
 
     switch (event->type) {
 
-      case EVT_ALARM:
+        case EVENT_ALARM:
 
-        if (event->param.iParam < 0 || event->param.iParam >= ALARM_IDX_END) {
-            LOG("Alarm with bad parameter");
-            return PROPAGATE;
-        }
-        a = &alarms[event->param.iParam];
-        processAlarmEvent(a);
-        break;
+            if (event->param.iParam < 0 || event->param.iParam >= ALARM_INDEX_END) {
+                LOG("Alarm with bad parameter");
+                return PROPAGATE;
+            }
+            a = &alarms[event->param.iParam];
+            processAlarmEvent(a);
+            break;
 
-      case EVT_KEY_PRESS:
+        case EVENT_KEY_PRESS:
 #ifdef SIM_HIGH_PRESSURE
-        if (event->param.iParam == KEY_SET) {
-          LOG("SIM High pressure Alarm event");
-          CEvent::post(EVT_ALARM, EVT_ALARM_HIGH_PRESSURE);
-        }
-        else if (event->param.iParam == KEY_INCREMENT_PIN) {
-          LOG("SIM Low pressure Alarm event");
-          CEvent::post(EVT_ALARM, EVT_ALARM_LOW_PRESSURE);
-        }
-        else {
-          LOG("mute event");
-          muteAlarmIfOn();
-          //return PROPAGATE_STOP;
-        }
+            if (event->param.iParam == KEY_SET) {
+              LOG("SIM High pressure Alarm event");
+              CEvent::post(EVENT_ALARM, EVT_ALARM_HIGH_PRESSURE);
+            }
+            else if (event->param.iParam == KEY_INCREMENT_PIN) {
+              LOG("SIM Low pressure Alarm event");
+              CEvent::post(EVENT_ALARM, EVT_ALARM_LOW_PRESSURE);
+            }
+            else {
+              LOG("mute event");
+              muteAlarmIfOn();
+              //return PROPAGATE_STOP;
+            }
 #else
-        muteAlarmIfOn();
-        return PROPAGATE;
+            muteAlarmIfOn();
+            return PROPAGATE;
 #endif
-      case EVT_KEY_RELEASE:
-        break;
+        case EVENT_KEY_RELEASE:
+            break;
 
-      default:
-        return PROPAGATE;
+        default:
+            return PROPAGATE;
 
     }
 
     return PROPAGATE;
 }
 
-Alarm::~Alarm()
-{
+Alarm::~Alarm() {
 
 }

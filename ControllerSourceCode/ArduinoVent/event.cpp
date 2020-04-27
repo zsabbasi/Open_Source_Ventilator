@@ -19,103 +19,94 @@
  **************************************************************
 */
 
-
 #include "event.h"
 #include <string.h>
 #include "log.h"
-   
 
 //----------- Locals -------------
 
-
 #define QUEUE_SIZE 6
-#define NUM_MAX_LISNERS 4
+#define NUM_MAX_LISTENERS 4
 
 //extern void LOG(const char * txt);
 
 //------------ Global -----------
- static event_t eventQ[QUEUE_SIZE];
- static int eventQIdxIn = 0;
- static int eventQIdxOut = 0;
- static int eventQIdxCount = 0;
+static event_t eventQueue[QUEUE_SIZE];
+static int eventQueueIndexIn = 0;
+static int eventQueueIndexOut = 0;
+static int eventQueueIndexCount = 0;
 
- static CEvent * lisners[NUM_MAX_LISNERS];
- static int num_lisners = 0;
+static CEvent * listeners[NUM_MAX_LISTENERS];
+static int numListeners = 0;
 
- void evtDispatchAll()
- {
-     int i;
-     propagate_t ret;
-     while (eventQIdxCount>0) {
-         for (i=0; i<num_lisners; i++) {
-             ret = lisners[i]->onEvent(&eventQ[eventQIdxOut]);
-             if (ret == PROPAGATE_STOP)
-                 break;
-         }
+/* dispatch all events */
+void eventDispatchAll() {
+    int i;
+    propagate_t ret;
+    while (eventQueueIndexCount > 0) {
+        for (i = 0; i < numListeners; i++) {
+            ret = listeners[i]->onEvent(&eventQueue[eventQueueIndexOut]);
+            if (ret == PROPAGATE_STOP)
+                break;
+        }
 
-         eventQIdxOut++;
-         if (eventQIdxOut >= QUEUE_SIZE) eventQIdxOut = 0;
-         eventQIdxCount--;
-     }
- }
+        eventQueueIndexOut++;
+        if (eventQueueIndexOut >= QUEUE_SIZE) eventQueueIndexOut = 0;
+        eventQueueIndexCount--;
+    }
+}
 
- CEvent::CEvent()
- {
-     if (num_lisners < NUM_MAX_LISNERS) {
-         lisners[num_lisners++] = this;
-     }
-     else {
-         LOG("critical error, no room for CEvent");
-     }
- }
+/* ??? */
+CEvent::CEvent() {
+    if (numListeners < NUM_MAX_LISTENERS) {
+        listeners[numListeners++] = this;
+    } else {
+        LOG("critical error, no room for CEvent");
+    }
+}
 
- void CEvent::post( EVENT_TYPE type,
-                    int iParam)
- {
-    event_t e;
-    e.type = type;
-    e.param.iParam = iParam;
-    post(&e);
- }
+/* ??? */
+void CEvent::post(eventType_t type, int iParam) {
+    event_t event;
+    event.type = type;
+    event.param.iParam = iParam;
+    post(&event);
+}
 
- void CEvent::post( EVENT_TYPE type,
-                    uint64_t lParam)
- {
-     event_t e;
-     e.type = type;
-     e.param.lParam = lParam;
-     post(&e);
- }
+/* ??? */
+void CEvent::post(eventType_t type, uint64_t lParam) {
+    event_t event;
+    event.type = type;
+    event.param.lParam = lParam;
+    post(&event);
+}
 
- void CEvent::post( EVENT_TYPE type,
-                    char * tParam)
- {
-     event_t e;
-     e.type = type;
-     memcpy(e.param.tParam, tParam, sizeof(e.param.tParam));
-     post(&e);
- }
+/* ??? */
+void CEvent::post(eventType_t type, char * tParam) {
+    event_t event;
+    event.type = type;
+    memcpy(event.param.tParam, tParam, sizeof(event.param.tParam));
+    post(&event);
+}
 
- void CEvent::post (event_t * event)
- {
-     if (eventQIdxCount >= NUM_MAX_LISNERS ) {
-         LOG("critical error: Event queue full");
-         return;
-     }
-     event_t * e = &eventQ[eventQIdxIn++];
-     eventQIdxCount++;
-     if (eventQIdxIn >= QUEUE_SIZE) eventQIdxIn = 0;
+/* ??? */
+void CEvent::post (event_t * event) {
+    if (eventQueueIndexCount >= NUM_MAX_LISTENERS) {
+        LOG("critical error: Event queue full");
+        return;
+    }
+    event_t *queueIn = &eventQueue[eventQueueIndexIn++];
+    eventQueueIndexCount++;
+    if (eventQueueIndexIn >= QUEUE_SIZE) eventQueueIndexIn = 0;
 
-    *e = *event;
- }
+    *queueIn = *event;
+}
 
-
-CEvent::~CEvent()
-{
+CEvent::~CEvent() {
 
 }
 
-propagate_t CEvent::onEvent(event_t * event)
-{
+/* ??? why pass the event parameter ??? */
+propagate_t CEvent::onEvent(event_t * event) {
     return PROPAGATE;
 }

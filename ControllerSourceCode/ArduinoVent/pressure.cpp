@@ -72,7 +72,7 @@ static float binCounts[NUM_P_SENSORS];
 static float peaks[NUM_P_SENSORS];
 static float last[NUM_P_SENSORS];
 
-static uint64_t tm_press;
+static uint64_t pressureTimer;
 
 static float volumeInCurrentCycle = 0;
 static uint16_t tidalVolume = 0;
@@ -84,155 +84,152 @@ static uint64_t volumeStartTimerRef;
 static uint64_t tm_log;
 #endif
 
-void CalculateAveragePressure(psensor_t sensor)
-{
-  int i;
-  float rawSensorValue;
+/* keeps a moving average of pressure values */
+void CalculateAveragePressure(pressureSensor_t sensor) {
+    int i;
+    float rawSensorValue;
 
-  for (i = 0; i < NUM_P_SENSORS; i++)
-  {
-    rawSensorValue = 0;
-    if (i == PRESSURE)
-    {
-
+    for (i = 0; i < NUM_P_SENSORS; i++) {
+        rawSensorValue = 0;
+        if (i == PRESSURE) {
 #if (USE_Mpxv7002DP_PRESSURE_SENSOR == 1)
-      /*****************************************
-       *
-       *      Analog NXP Mpxv7002DP pressure sensor
-       *
-       *****************************************/
-      rawSensorValue = halGetAnalogPressure();
+            /*****************************************
+             *
+             *      Analog NXP Mpxv7002DP pressure sensor
+             *
+             *****************************************/
+            rawSensorValue = halGetAnalogPressure();
 
 #elif (USE_BMP280_PRESSURE_SENSOR == 1)
-      /*****************************************
-       *
-       *      BOSH BMP280 pressure sensor
-       *
-       *****************************************/
-      bpm280GetPressure();
-      rawSensorValue = getCmH2OGauge();
+            /*****************************************
+             *
+             *      BOSH BMP280 pressure sensor
+             *
+             *****************************************/
+            bpm280GetPressure();
+            rawSensorValue = getCmH2OGauge();
 
 #else
 #warning "No pressure sensor defined in config.h"
 #endif
 
-    } // if i == 0
-    else
-    {
+        } // if i == 0
+        else {
 #if (USE_Mpxv7002DP_FLOW_SENSOR == 1)
-      /*****************************************
-       *
-       *      Analog NXP Mpxv7002DP pressure sensor
-       *
-       *****************************************/
-      rawSensorValue = halGetAnalogFlow();
+            /*****************************************
+             *
+             *      Analog NXP Mpxv7002DP pressure sensor
+             *
+             *****************************************/
+            rawSensorValue = halGetAnalogFlow();
 #elif (USE_CAR_FLOW_SENSOR == 1)
-      /*****************************************
-       *
-       *      Analog NXP Mpxv7002DP pressure sensor
-       *
-       *****************************************/
-      rawSensorValue = getFlowRate();
+            /*****************************************
+             *
+             *      Analog NXP Mpxv7002DP pressure sensor
+             *
+             *****************************************/
+            rawSensorValue = getFlowRate();
 #endif
-    }
+        }
 
-    last[i] = rawSensorValue;
-    // clamp it to the max (max value provided by the sensor)
-    if (rawSensorValue >= peaks[i])
-      peaks[i] = rawSensorValue;
+        last[i] = rawSensorValue;
+        // clamp it to the max (max value provided by the sensor)
+        if (rawSensorValue >= peaks[i])
+            peaks[i] = rawSensorValue;
 
-    accumulator[i] = accumulator[i] + rawSensorValue;
-    binCounts[i] = binCounts[i] + 1;
+        accumulator[i] = accumulator[i] + rawSensorValue;
+        binCounts[i] = binCounts[i] + 1;
 
-    av[i] = accumulator[i] / binCounts[i];
+        av[i] = accumulator[i] / binCounts[i];
 
-    //Reset average to the first bin if already crossed the limit
-    if(binCounts[i] >= AVERAGE_BIN_NUMBER) {
-      accumulator[i] = rawSensorValue;
-      binCounts[i] = 1;
-      peaks[i] = rawSensorValue;
-    }
+        //Reset average to the first bin if already crossed the limit
+        if (binCounts[i] >= AVERAGE_BIN_NUMBER) {
+            accumulator[i] = rawSensorValue;
+            binCounts[i] = 1;
+            peaks[i] = rawSensorValue;
+        }
 
-    if(i==FLOW) {    
-      uint64_t timerNow = halStartTimerRef();
-      float slotVolume = ((av[i] *  100.0) * (timerNow - volumeStartTimerRef));
-      volumeInCurrentCycle = volumeInCurrentCycle + slotVolume;
-      // Serial.println(volumeInCurrentCycle);
-      // Serial.println(slotVolume);
-      volumeStartTimerRef = timerNow;
-    }
-  } // for loop
+        if (i == FLOW) {
+            uint64_t timerNow = halStartTimerRef();
+            float slotVolume = ((av[i] * 100.0) * (timerNow - volumeStartTimerRef));
+            volumeInCurrentCycle = volumeInCurrentCycle + slotVolume;
+            // Serial.println(volumeInCurrentCycle);
+            // Serial.println(slotVolume);
+            volumeStartTimerRef = timerNow;
+        }
+    } // for loop
 }
 
-//====================================================================
-void pressInit()
-{
+/* initialize all pressure variables */
+void pressInit() {
 #ifndef VENTSIM
 #if (USE_Mpxv7002DP_PRESSURE_SENSOR == 1 || USE_CAR_FLOW_SENSOR == 1)
-  analogReference(DEFAULT); // Arduino function
+    analogReference(DEFAULT); // Arduino function
 #endif
 #endif
 
 #if (USE_BMP280_PRESSURE_SENSOR == 1)
-  bpm280Init();
+    bpm280Init();
 #endif
 
-  tm_press = halStartTimerRef();
+    pressureTimer = halStartTimerRef();
 
 #ifdef SHOW_VAL
-  tm_log = tm_press;
+    tm_log = pressureTimer;
 #endif
 }
 
+/* clears variables for tidal volume calculation */
 void startTidalVolumeCalculation() {
     volumeInCurrentCycle = 0.0;
     tidalVolume = 0;
     volumeStartTimerRef = halStartTimerRef();
 }
 
+/* calculate tidal volume */
 void endTidalVolumeCalculation() {
-  tidalVolume = volumeInCurrentCycle * (1000 /* litres to cm3*/) / (60000 * 100); // lires per min instead of per milliseconds
-  volumeInCurrentCycle = 0;
+    tidalVolume = volumeInCurrentCycle * (1000 /* litres to cm3*/) /
+                  (60000 * 100); // litres per min instead of per milliseconds
+    volumeInCurrentCycle = 0;
 }
 
-
-void pressLoop()
-{
-  if (halCheckTimerExpired(tm_press, PRESSURE_READ_DELAY))
-  {
-    CalculateAveragePressure(PRESSURE);
-    tm_press = halStartTimerRef();
-  }
+/* main pressure loop */
+void pressLoop() {
+    if (halCheckTimerExpired(pressureTimer, PRESSURE_READ_DELAY)) {
+        CalculateAveragePressure(PRESSURE);
+        pressureTimer = halStartTimerRef();
+    }
 
 #ifdef SHOW_VAL
-  char buf[24];
-  if (halCheckTimerExpired(tm_log, TM_LOG))
-  {
-    LOGV("av = %d", av);
+    char buf[24];
+    if (halCheckTimerExpired(tm_log, TM_LOG))
+    {
+      LOGV("av = %d", av);
 #ifndef VENTSIM
-    dtostrf(cmH2O[PRESSURE], 8, 2, buf);
-    LOGV("Pa = %s\n", buf);
+      dtostrf(cmH2O[PRESSURE], 8, 2, buf);
+      LOGV("Pa = %s\n", buf);
 #else
-    LOGV("Pa = %f\n", cmH2O[PRESSURE]);
+      LOGV("Pa = %f\n", cmH2O[PRESSURE]);
 #endif
-    tm_log = halStartTimerRef();
-  }
+      tm_log = halStartTimerRef();
+    }
 #endif
 }
 
-float pressGetVal(psensor_t sensor)
-{
-  return last[sensor];
+/* getter method for pressure */
+float pressGetVal(pressureSensor_t sensor) {
+    return last[sensor];
 }
 
+/* getter method for tidal volume */
 uint16_t pressGetTidalVolume() {
-  return tidalVolume;
+    return tidalVolume;
 }
-//-----------------------------------------------------------------
+
 #else
 // Stubbs
 void pressInit() {}
 void pressLoop() {}
-float pressGetFloatVal(psensor_t sensor) { return 0.0; }
+float pressGetFloatVal(pressureSensor_t sensor) { return 0.0; }
 
 #endif //#if ( (USE_Mpxv7002DP_PRESSURE_SENSOR == 1) || (USE_Mpxv7002DP_FLOW_SENSOR == 1) )

@@ -39,31 +39,31 @@
     #endif
 #endif
 
-#define TM_MONITOR_LED_NORMAL       500
-#define TM_MONITOR_LED_FAST         50 //
-#define TM_MONITOR_LED_SLOW         2000
+#define TIME_MONITOR_LED_NORMAL       500
+#define TIME_MONITOR_LED_FAST         50 //
+#define TIME_MONITOR_LED_SLOW         2000
 
-#define TM_ALARM_PERIOD 1000
-#define TM_KEY_SAMPLING 5  // 5 ms
+#define TIME_ALARM_PERIOD 1000
+#define TIME_KEY_SAMPLING 5  // 5 ms
 
 typedef enum {
   MONITOR_LED_NORMAL,
   MONITOR_LED_FAST,
   MONITOR_LED_SLOW,
-} MONITOR_LET_T;
+} monitorLED_t;
 
 #ifdef VENTSIM
   void halInit(QPlainTextEdit * ed,
-               QLabel * input_valve_on,
-               QLabel * input_valve_off,
-               QLabel * output_valve_on,
-               QLabel * output_valve_off);
+               QLabel * inputValveOn,
+               QLabel * inputValveOff,
+               QLabel * outputValveOn,
+               QLabel * outputValveOff);
 #else
-  void halInit(uint8_t reset_val);
+  void halInit(uint8_t resetValue);
 #endif
 
-void halSetMonitorLED (MONITOR_LET_T speed);
-MONITOR_LET_T halGetMonitorLED ();
+void halSetMonitorLED (monitorLED_t speed);
+monitorLED_t halGetMonitorLED ();
 
 uint64_t halStartTimerRef(); // milliseconds reference
 bool halCheckTimerExpired(uint64_t timerRef, uint64_t lapseTime); // lapseTime in milliseconds
@@ -87,7 +87,7 @@ void halValveInClose();
 void halValveOutOpen();
 void halValveOutClose();
 
-void halBeepAlarmOnOff( bool on);
+void halBeepAlarmOnOff(bool on);
 
 uint16_t halGetAnalogPressure();
 uint16_t halGetAnalogFlow();

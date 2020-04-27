@@ -46,48 +46,47 @@
   130, 179, 224, 209, 70,  119, 36,  21,  59,  10,  89,  104, 255, 206, 157, 172
 };
 
-
 #ifndef VENTSIM
-uint8_t crc_8( const uint8_t * input_str, int num_bytes ) 
-{
-  int a;
-  uint8_t crc;
-  uint8_t table_idx;
-  const unsigned char *ptr;
+uint8_t crc_8(const uint8_t * input_str, int num_bytes) {
+    int a;
+    uint8_t crc;
+    uint8_t tableIndex;
+    const unsigned char *ptr;
 
-  crc = 0;
-  ptr = input_str;
+    crc = 0;
+    ptr = input_str;
 
-  if ( ptr != 0 )  {
-    for (a=0; a<num_bytes; a++) {
-      table_idx = (*ptr++) ^ crc;
-      crc = pgm_read_byte_near(crc8_table + table_idx);
-      //crc = crc8_table[(*ptr++) ^ crc];
+    if (ptr != nullptr) {
+        for (a = 0; a < num_bytes; a++) {
+            tableIndex = (*ptr++) ^ crc;
+            crc = pgm_read_byte_near(crc8_table + tableIndex);
+            //crc = crc8_table[(*ptr++) ^ crc];
+        }
     }
-  }
 
-  return crc;
+    return crc;
 }
+
 #else
-uint8_t crc_8( const uint8_t * input_str, int num_bytes ) 
-{
-  int a;
-  uint8_t crc;
-  const unsigned char *ptr;
+uint8_t crc_8( const uint8_t * input_str, int num_bytes ) {
+    int a;
+    uint8_t crc;
+    const unsigned char *ptr;
 
-  crc = 0;
-  ptr = input_str;
+    crc = 0;
+    ptr = input_str;
 
-  if ( ptr != 0 )  {
-    for (a=0; a<num_bytes; a++) {
-      crc = crc8_table[(*ptr++) ^ crc];
+    if (ptr != nullptr) {
+        for (a = 0; a < num_bytes; a++) {
+            crc = crc8_table[(*ptr++) ^ crc];
+        }
     }
-  }
 
-  return crc;
+    return crc;
 }
+
 #endif
 
 uint8_t update_crc_8( unsigned char crc, unsigned char val ) {
-  return crc8_table[val ^ crc];
-} 
+    return crc8_table[val ^ crc];
+}

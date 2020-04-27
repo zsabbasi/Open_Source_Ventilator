@@ -22,20 +22,20 @@
 */
 #include <stdint.h>
 
-#define AVERAGE_BIN_NUMBER        2        // Number of averaging bins for the averaging routine
+#define AVERAGE_BIN_NUMBER        6        // Number of averaging bins for the averaging routine
 #define PRESSURE_READ_DELAY       20L       // wait 20 ms between reads
 
 typedef enum {
   PRESSURE,
   FLOW,
-  
+
   NUM_P_SENSORS // must be the last one
-} psensor_t;
+} pressureSensor_t;
 
 void pressInit();
 void pressLoop();
 
-float pressGetVal(psensor_t sensor);
+float pressGetVal(pressureSensor_t sensor);
 
 void startTidalVolumeCalculation();
 void endTidalVolumeCalculation();

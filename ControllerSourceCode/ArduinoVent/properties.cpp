@@ -34,112 +34,108 @@
 #define TAG2 0x34
 
 typedef struct __attribute__ ((packed))  props_st {
-  uint8_t tag1;
-  uint8_t tag2;
-  
-  uint8_t propVent;
-  uint8_t propBpm;
-  uint8_t propDutyCycle;
-  uint16_t propPause;
-  uint8_t propLcdAutoOff;
-  uint8_t propBle;
+    uint8_t tag1;
+    uint8_t tag2;
 
-  uint8_t propLowPressure;
-  uint8_t propHighPressure;
-  uint16_t propLowTidal;
-  uint16_t propHighTidal;
-  uint8_t propDesiredPeep;
+    uint8_t propVent;
+    uint8_t propBpm;
+    uint8_t propDutyCycle;
+    uint16_t propPause;
+    uint8_t propLcdAutoOff;
+    uint8_t propBle;
 
-  uint8_t crc;
+    uint8_t propLowPressure;
+    uint8_t propHighPressure;
+    uint16_t propLowTidal;
+    uint16_t propHighTidal;
+    uint8_t propDesiredPeep;
+
+    uint8_t crc;
 } PROPS_T;
 
 static PROPS_T props;
 static bool pendingSave = false;
-static uint64_t tm_save;
+static uint64_t saveTimer;
 
 // Note: defaults values will takes place in case the stored parameters are corrupted or empty
 
 const char * propDutyCycleTxt[PROT_DUTY_CYCLE_SIZE] = {
-    "  1:1",
-    "  1:2",
-    "  1:3",
-    "  1:4"
+        "  1:1",
+        "  1:2",
+        "  1:3",
+        "  1:4"
 };
 
-static void setDefaultValues()
-{
-  props.tag1             = TAG1;
-  props.tag2             = TAG2;
-  
-  props.propVent         = DEFAULT_VENT;
-  props.propBpm          = DEFAULT_BPS;
-  props.propDutyCycle    = DEFAULT_DUTY_CYCLE;
-  props.propPause        = DEFAULT_PAUSE;
-  props.propLcdAutoOff   = DEFAULT_LCD_AUTO_OFF;
-  props.propBle          = DEFAULT_BLE;
+/* set properties to their default values */
+static void setDefaultValues() {
+    props.tag1             = TAG1;
+    props.tag2             = TAG2;
 
-  props.propLowPressure        = DEFAULT_LOW_PRESSURE;
-  props.propHighPressure       = DEFAULT_HIGH_PRESSURE;
-  props.propLowTidal           = DEFAULT_LOW_TIDAL;
-  props.propHighTidal          = DEFAULT_HIGH_TIDAL;
-  props.propDesiredPeep        = DEFAULT_DESIRED_PEEP;
+    props.propVent         = DEFAULT_VENT;
+    props.propBpm          = DEFAULT_BPM;
+    props.propDutyCycle    = DEFAULT_DUTY_CYCLE;
+    props.propPause        = DEFAULT_PAUSE;
+    props.propLcdAutoOff   = DEFAULT_LCD_AUTO_OFF;
+    props.propBle          = DEFAULT_BLE;
 
+    props.propLowPressure  = DEFAULT_LOW_PRESSURE;
+    props.propHighPressure = DEFAULT_HIGH_PRESSURE;
+    props.propLowTidal     = DEFAULT_LOW_TIDAL;
+    props.propHighTidal    = DEFAULT_HIGH_TIDAL;
+    props.propDesiredPeep  = DEFAULT_DESIRED_PEEP;
 }
 
-static bool checkRecord(PROPS_T * prop_ptr)
-{
-  unsigned int i;
-  bool is_empty = true; // assume empty
-
-  if ( (prop_ptr->tag1 != TAG1) || (prop_ptr->tag2 != TAG2) ) {
-    LOG("checkRecord: bad tag");
-    return false;
-  }
-
-  // -------- check CRC ---------
-  uint16_t crc = crc_8( (uint8_t *) prop_ptr, sizeof(PROPS_T) - 1);
-  if (crc != prop_ptr->crc) {
-    LOG("checkRecord: bad crc");
-    return false;
-  }
-
-  return true;
-}
-
-void propInit()
-{
-  halRestoreDataBlock((uint8_t *) &props, sizeof(PROPS_T) );
-  if (checkRecord(&props) == false) {
-    LOG("EEPROM values not valid, loading default parameters");
-    setDefaultValues();
-    propSave();
-  }
-}
-
-void propLoop()
-{
-  if (pendingSave) {
-    if (halCheckTimerExpired(tm_save, TM_SAVE_TIMEOUT)) {
-      // save props in EEPROM
-      LOG("Save timeout... lets save props into EEPROM");
-      propSave();
+/* check if properties are valid */
+static bool checkRecord(PROPS_T * prop_ptr) {
+    if ((prop_ptr->tag1 != TAG1) || (prop_ptr->tag2 != TAG2)) {
+        LOG("checkRecord: bad tag");
+        return false;
     }
-  }
+
+    // -------- check CRC ---------
+    uint16_t crc = crc_8((uint8_t *) prop_ptr, sizeof(PROPS_T) - 1);
+    if (crc != prop_ptr->crc) {
+        LOG("checkRecord: bad crc");
+        return false;
+    }
+
+    return true;
 }
 
-static void setSavePending()
-{
-  pendingSave = true;
-  tm_save = halStartTimerRef();
+/* if properties are not valid, set them to default */
+void propInit() {
+    halRestoreDataBlock((uint8_t *) &props, sizeof(PROPS_T));
+    if (!checkRecord(&props)) {
+        LOG("EEPROM values not valid, loading default parameters");
+        setDefaultValues();
+        propSave();
+    }
 }
 
-bool propSave()
-{
-  // update crc
-  uint16_t crc = crc_8( (uint8_t *) &props, sizeof(PROPS_T) - 1);
-  props.crc = crc;
-  halSaveDataBlock((uint8_t *) &props, sizeof(PROPS_T) );
-  pendingSave = false;
+/* checks if properties need to be saved, and save them if so */
+void propLoop() {
+    if (pendingSave) {
+        if (halCheckTimerExpired(saveTimer, TM_SAVE_TIMEOUT)) {
+            // save props in EEPROM
+            LOG("Save timeout... lets save props into EEPROM");
+            propSave();
+        }
+    }
+}
+
+/* save properties */
+bool propSave() {
+    // update crc
+    uint16_t crc = crc_8((uint8_t *) &props, sizeof(PROPS_T) - 1);
+    props.crc = crc;
+    halSaveDataBlock((uint8_t *) &props, sizeof(PROPS_T));
+    pendingSave = false;
+}
+
+// ---------- Setters ------------
+static void setSavePending() {
+    pendingSave = true;
+    saveTimer = halStartTimerRef();
 }
 
 void propSetVent(uint8_t val) {
@@ -155,57 +151,57 @@ void propSetBpm(uint8_t val) {
 }
 
 void propSetDutyCycle(uint8_t val) {
-     //LOG("propSetDutyCycle");
-     props.propDutyCycle =  (uint8_t) val & 0x000000ff;
-     setSavePending();
+    //LOG("propSetDutyCycle");
+    props.propDutyCycle = (uint8_t) val & 0x000000ff;
+    setSavePending();
 }
 
 void propSetPause(int val) {
-     //LOG("propSetPause");
-     props.propPause =  (uint16_t) val & 0x0000ffff;
-     setSavePending();
+    //LOG("propSetPause");
+    props.propPause = (uint16_t) val & 0x0000ffff;
+    setSavePending();
 }
 
 void propSetLcdAutoOff(int val) {
-     //LOG("propSetLcdAutoOff");
-     props.propLcdAutoOff =  (uint8_t) val & 0x000000ff;
-     setSavePending();
+    //LOG("propSetLcdAutoOff");
+    props.propLcdAutoOff = (uint8_t) val & 0x000000ff;
+    setSavePending();
 }
 
 void propSetBle(int val) {
-      //LOG("propSetBle");
-      props.propBle =  (uint8_t) val & 0x000000ff;
-      setSavePending();
+    //LOG("propSetBle");
+    props.propBle = (uint8_t) val & 0x000000ff;
+    setSavePending();
 }
 
 void propSetLowPressure(int val) {
-      //LOG("propSetBle");
-      props.propLowPressure =  (uint8_t) val & 0x000000ff;
-      setSavePending();
+    //LOG("propSetBle");
+    props.propLowPressure = (uint8_t) val & 0x000000ff;
+    setSavePending();
 }
 
 void propSetHighPressure(int val) {
-      //LOG("propSetBle");
-      props.propHighPressure =  (uint8_t) val & 0x000000ff;
-      setSavePending();
+    //LOG("propSetBle");
+    props.propHighPressure = (uint8_t) val & 0x000000ff;
+    setSavePending();
 }
 
 void propSetLowTidal(int val) {
-      //LOG("propSetBle");
-      props.propLowTidal =  (uint16_t) val & 0x0000ffff;
-      setSavePending();
+    //LOG("propSetBle");
+    props.propLowTidal = (uint16_t) val & 0x0000ffff;
+    setSavePending();
 }
 
 void propSetHighTidal(int val) {
-      //LOG("propSetBle");
-      props.propHighTidal =  (uint16_t) val & 0x0000ffff;
-      setSavePending();
+    //LOG("propSetBle");
+    props.propHighTidal = (uint16_t) val & 0x0000ffff;
+    setSavePending();
 }
 
 void propSetDesiredPeep(int val) {
-      //LOG("propSetBle");
-      props.propDesiredPeep =  (uint8_t) val & 0x000000ff;
-      setSavePending();
+    //LOG("propSetBle");
+    props.propDesiredPeep = (uint8_t) val & 0x000000ff;
+    setSavePending();
 }
 
 // ---------- Getters ------------
@@ -220,48 +216,52 @@ uint8_t propGetBpm() {
 }
 
 uint8_t propGetDutyCycle() {
-     //LOG("propGetDutyCycle");
-     return props.propDutyCycle;
+    //LOG("propGetDutyCycle");
+    return props.propDutyCycle;
 }
 
 int propGetPause() {
-     //LOG("propGetPause");
-     return props.propPause;
+    //LOG("propGetPause");
+    return props.propPause;
 }
 
 int propGetLcdAutoOff() {
-     //LOG("propGetLcdAutoOff");
-     return props.propLcdAutoOff;
+    //LOG("propGetLcdAutoOff");
+    return props.propLcdAutoOff;
 }
 
 int propGetBle() {
-      //LOG("propGetBle");
-      return props.propBle;
+    //LOG("propGetBle");
+    return props.propBle;
 }
 
 int propGetLowPressure() {
-      //LOG("propLowPressure");
-      return props.propLowPressure;
+    //LOG("propLowPressure");
+    return props.propLowPressure;
 }
+
 int propGetHighPressure() {
-      //LOG("propHighPressure");
-      return props.propHighPressure;
+    //LOG("propHighPressure");
+    return props.propHighPressure;
 }
+
 int propGetLowTidal() {
-      //LOG("propLowTidal");
-      return props.propLowTidal;
+    //LOG("propLowTidal");
+    return props.propLowTidal;
 }
+
 int propGetHighTidal() {
-      //LOG("propHighTidal");
-      return props.propHighTidal;
+    //LOG("propHighTidal");
+    return props.propHighTidal;
 }
+
 int propGetDesiredPeep() {
-      //LOG("propDesiredPeep");
-      return props.propDesiredPeep;
+    //LOG("propDesiredPeep");
+    return props.propDesiredPeep;
 }
 
+// in case we decide to do a Wear leveling
 
-//---------------- in case we decide to do a Wear leveling
 #if 0
 
 #define EEPROM_SIZE 512
@@ -271,45 +271,41 @@ int propGetDesiredPeep() {
 static PROPS_T temp_props;
 static int next_record_idx = 0; // next record index for writing
 
-void propInit()
-{
-  // ---- find a valid last record ----
-  int i;
-  PROPS_T * prop_ptr = 0;
-  CHECK_T check;
-  
-  for (i=0; i<MAX_NUM_RECORDS; i++) {
-    // check if record if empty
-    getRecord(prop_ptr, &temp_props );
-    check = checkRecord(prop_ptr);
-    if ( check == EMPTY ) {
-      if (i != 0) {
-        next_record_idx = i;
-        // -------------- Lets fill our parameters with the previous GOOD record
-        prop_ptr--; 
-        getRecord(prop_ptr, &props );
-        LOG("Get parameters from EEPROM");
-        return;
-      }
-      else {
-        // -------------- seems that the EEPROM is empty
-        LOG("EEPROM is empty... use defaults");
-        return;
-      }
-    }
-    if (check == BAD) {
-        LOG("EEPROM with bad record");
-        return;
-    }
-    
-    prop_ptr++; // check next
-  }
+void propInit() {
+    // ---- find a valid last record ----
+    int i;
+    PROPS_T *prop_ptr = 0;
+    CHECK_T check;
 
-  // -------------- Lets fill our parameters with the very last record
-  prop_ptr--; 
-  getRecord(prop_ptr, &props );
-  LOG("Get parameters from EEPROM last record");
-  return;
+    for (i = 0; i < MAX_NUM_RECORDS; i++) {
+        // check if record if empty
+        getRecord(prop_ptr, &temp_props);
+        check = checkRecord(prop_ptr);
+        if (check == EMPTY) {
+            if (i != 0) {
+                next_record_idx = i;
+                // -------------- Lets fill our parameters with the previous GOOD record
+                prop_ptr--;
+                getRecord(prop_ptr, &props);
+                LOG("Get parameters from EEPROM");
+                return;
+            } else {
+                // -------------- seems that the EEPROM is empty
+                LOG("EEPROM is empty... use defaults");
+                return;
+            }
+        }
+        if (check == BAD) {
+            LOG("EEPROM with bad record");
+            return;
+        }
 
+        prop_ptr++; // check next
+    }
+
+    // -------------- Lets fill our parameters with the very last record
+    prop_ptr--;
+    getRecord(prop_ptr, &props);
+    LOG("Get parameters from EEPROM last record");
 }
 #endif

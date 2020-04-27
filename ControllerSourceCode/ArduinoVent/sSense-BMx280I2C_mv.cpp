@@ -56,12 +56,12 @@ bool BMx280I2C::WriteRegister
   uint8_t data
 )
 {
-  Wire.beginTransmission(m_bme_280_addr);
-  Wire.write(addr);
-  Wire.write(data);
-  Wire.endTransmission();
+    Wire.beginTransmission(m_bme_280_addr);
+    Wire.write(addr);
+    Wire.write(data);
+    Wire.endTransmission();
 
-  return true; // TODO: Chech return values from wire calls.
+    return true; // TODO: Chech return values from wire calls.
 }
 
 
@@ -73,18 +73,17 @@ bool BMx280I2C::ReadRegister
   uint8_t length
 )
 {
-  uint8_t ord(0);
+    uint8_t ord(0);
 
-  Wire.beginTransmission(m_bme_280_addr);
-  Wire.write(addr);
-  Wire.endTransmission();
+    Wire.beginTransmission(m_bme_280_addr);
+    Wire.write(addr);
+    Wire.endTransmission();
 
-  Wire.requestFrom(m_bme_280_addr, length);
+    Wire.requestFrom(m_bme_280_addr, length);
 
-  while(Wire.available())
-  {
-    data[ord++] = Wire.read();
-  }
+    while (Wire.available()) {
+        data[ord++] = Wire.read();
+    }
 
-  return ord == length;
+    return ord == length;
 }

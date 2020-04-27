@@ -34,60 +34,73 @@ void uiNativeLoop();
 typedef enum {
     SHOW_MODE = 0,
     ENTER_MODE,
-} UI_STATE_T;
+} uiState_t;
 
 typedef  enum {
     STATE_IDLE = 0,
     STATE_RUN,
     STATE_ERROR
-} RUN_STATE_T;
+} runState_t;
 
 class CUiNative : CEvent {
 public:
     CUiNative();
+
     ~CUiNative();
+
     void loop();
+
     //void updateStatus();
     void updateParams();
+
     void updateParameterValue();
+
     void scroolParams(bool down);
+
     void blinker();
+
     void blinkOff(int mask);
+
     void blinkOn(int mask);
+
     void refreshValue(bool force);
-    void checkFuncHold ();
+
+    void checkFuncHold();
+
     void updateProgress();
+
     void initParams();
-    void fillValBuf(char * buf, int idx);
+
+    void fillValBuf(char *buf, int index);
+
     void updateStatus(bool blank);
 
-    virtual propagate_t onEvent(event_t * event);
+    virtual propagate_t onEvent(event_t *event);
 
     // --- public var (neede for static function) ---
-    RUN_STATE_T state_idx; // = STATE_IDLE;
+    runState_t stateIndex; // = STATE_IDLE;
 
- private:
-    int params_idx;
+private:
+    int paramsIndex;
     int progress;
 
-    UI_STATE_T ui_state; // = SHOW_MODE;
-    unsigned long tm_set_hold;
-    bool check_set_hold; // = false;
-    unsigned long tm_decrement_hold;
-    bool check_decrement_hold; // = false;
-    bool shortcut_to_top_done;
-    int ignore_release; // = 0;
+    uiState_t uiState; // = SHOW_MODE;
+    unsigned long timerSetHold;
+    bool checkSetHold; // = false;
+    unsigned long timerDecrementHold;
+    bool checkDecrementHold; // = false;
+    bool shortcutToTopDone;
+    int ignoreRelease; // = 0;
 
-    int blink_mask; // = 0;
-    unsigned long tm_blink;
-    int blink_phase; // = 0;
+    int blinkMask; // = 0;
+    unsigned long blinkTimer;
+    int blinkPhase; // = 0;
 
-    bool alarm_mode; // = false;
-    char alarm_msg[LCD_NUM_COLS+1];
+    bool alarmMode; // = false;
+    char alarmMessage[LCD_NUM_COLS + 1];
 
-    int bps; // = 10;
+    int bpm; // = 10;
     float dutyCycle; // = 0.1f;
-
 };
 
 #endif // UI_NATIVE_H
